@@ -1,4 +1,3 @@
-
 from nuscenes.nuscenes import NuScenes 
 import numpy as np
 import os
@@ -42,9 +41,18 @@ class Detect:
             self.lidarpoint = []
             self.lidarpointV2 = []
             self.file_get()
+            #print ("file complete")
+            info = self.nusc.get('sample', self._sample)
+            info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
+            info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
+            print (info_2)
+            rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2)))
+            print (rot)
+            rot_matrix = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
+            self.lidar_coor(rot_matrix)
+            #print("lidar complete")
             if prnt:
                 print ("file complete")
-            self.lidar_coor()
             if prnt:
                 print("lidar complete")
             self.update_occerence()
@@ -65,8 +73,8 @@ class Detect:
         self.file = os.path.join(self.dataroot, info_2['filename'])
         
 
-    def lidar_coor(self):
-        # Deze functie Loopt door het bestand heen. Het bestand heeft per Lidar punt een x, y, z coordinaten en de channel index + reflectifity
+    def lidar_coor(self, rot_matrix):#Deze functie Loopt door het bestand heen. Het bestand heeft per Lidar punt een x, y, z coordinaten en de channel index + reflectifity
+
         som = 0
         lidar_punt = 0
 
@@ -74,21 +82,19 @@ class Detect:
             number = f.read(4)
 
             while number != b"":
-                quo, rem = divmod(som, 5)  # omdat je alleen x, y, z wilt gebruiken kijk je naar het residu van het item waar die op zit.
-
-                if rem == 0:  # residu = 0 -> x-coordinaat
-                    x = np.frombuffer(number, dtype=np.float32)[0]
-                    number = f.read(4)  # leest de volgende bit
-                elif rem == 1:  # residu = 1 -> y-coordinaat
-                    y = np.frombuffer(number, dtype=np.float32)[0]
-                    number = f.read(4)  # leest de volgende bit
-                elif rem == 2:  # residu = 2 -> z-coordinaat
-                    z = np.frombuffer(number, dtype=np.float32)[0]
-                    self.lidarpointV2.append((x, y, z))
-
-                    x_frame = (x + self._x - self.patchxmin) / self.reso
-                    y_frame = (y + self._y - self.patchymin) / self.reso
-                    self.lidarpoint.append((x_frame, y_frame))
+                quo, rem = divmod(som,5) #omdat je alleen x en y wilt gebruiken en niet de andere dingen kijk je naar het residu van het item waar die op zit.
+                if rem == 0: # als het residu = 0 heb je het x coordinaat en res = 1 is het y-coordinaat
+                    
+                    x = np.frombuffer(number, dtype=np.float32)
+                    number = f.read(4) #leest de volgende bit    
+                if rem ==1:
+                    np.frombuffer(number, dtype=np.float32)
+                    y = np.frombuffer(number, dtype=np.float32)
+                    xy= np.array([x,y])
+                    xy_rotated = np.dot(rot_matrix, xy)
+                    x_frame = (xy_rotated[0]+self._x-self.patchxmin)/self.reso
+                    y_frame = (xy_rotated[1]+self._y-self.patchymin)/self.reso
+                    self.lidarpoint.append((x_frame,y_frame))
 
                     x_frame = int(x_frame)
                     y_frame = int(y_frame)
