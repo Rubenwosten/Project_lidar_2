@@ -46,10 +46,10 @@ class Detect:
             info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
             info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
             print (info_2)
-            rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2)))
+            rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) - np.pi
             print (rot)
             rot_matrix = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
-            self.lidar_coor(rot_matrix)
+            self.lidar_coor(rot)
             #print("lidar complete")
             if prnt:
                 print ("file complete")
@@ -86,14 +86,17 @@ class Detect:
                 if rem == 0: # als het residu = 0 heb je het x coordinaat en res = 1 is het y-coordinaat
                     
                     x = np.frombuffer(number, dtype=np.float32)
+                    
                     number = f.read(4) #leest de volgende bit    
                 if rem ==1:
                     np.frombuffer(number, dtype=np.float32)
                     y = np.frombuffer(number, dtype=np.float32)
+                    x = x*np.cos(rot_matrix) - y*np.sin(rot_matrix)
+                    y= x*np.sin(rot_matrix) + y*np.cos(rot_matrix)
                     xy= np.array([x,y])
                     xy_rotated = np.dot(rot_matrix, xy)
-                    x_frame = (xy_rotated[0]+self._x-self.patchxmin)/self.reso
-                    y_frame = (xy_rotated[1]+self._y-self.patchymin)/self.reso
+                    x_frame = (x+self._x-self.patchxmin)/self.reso
+                    y_frame = (y+self._y-self.patchymin)/self.reso
                     self.lidarpoint.append((x_frame,y_frame))
 
                     x_frame = int(x_frame)
