@@ -43,8 +43,9 @@ RESOLUTION = 0.5 # meter
 run_detect = True
 run_obj = False
 plot_layers = False
-visualise_pointcloud = True
+visualise_pointcloud = False
 show_pointcloud = False
+plot_occ_hist = False
 
 def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
@@ -69,18 +70,20 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     pointclouds_folder = os.path.join(plots_folder, "pointclouds")
     pointclouds_overlay_folder = os.path.join(plots_folder, "pointclouds overlay")
     occ_folder = os.path.join(plots_folder, "occurrence")
+    occ_hist_folder = os.path.join(plots_folder, "occurrence histograms")
     
     # Create subfolders
     os.makedirs(risk_plots_folder, exist_ok=True)
     os.makedirs(pointclouds_folder, exist_ok=True)
     os.makedirs(pointclouds_overlay_folder, exist_ok=True)
     os.makedirs(occ_folder, exist_ok=True)
+    os.makedirs(occ_hist_folder, exist_ok=True)
 
     # Assign layers to the grid in parallel
     map.assign_layer(scene_data_path, prnt=False)
 
     map.save_grid(scene_data_path)
-
+    
     # Generate and save the layer plot
     if plot_layers:
         Visualise.plot_layers(map.grid, layer_plot_path)
@@ -115,9 +118,12 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
         # update total variables
         map.update(sample=sample,i=i, weights=risk_weights)
+
+        # plot occurrence range histograms
+        if plot_occ_hist:
+            Visualise.plot_occ_histogram(map, i, occ_hist_folder)
         
         # Save individual risk plots
-        # Visualise.plot_risks(map.grid, i, risk_plots_folder)
         print(f"sample {i} complete\n")
     
     # save the grid with the new risk values 
@@ -127,7 +133,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     Visualise.plot_total_var(map.grid.total_occ, 'Total Occurrence', plots_folder)
     Visualise.plot_total_var(map.grid.total_obj, 'Total Objects', plots_folder)
     Visualise.plot_total_var(map.grid.total_obj_sev, 'Total Object severity', plots_folder)
-        
+    Visualise.plot_avg_occ_histogram(map, plots_folder)
+
     # Plot all risk plots with global maximum values
     maxs = get_global_max(map=map)
     for i, sample in enumerate(map.samples):
@@ -139,11 +146,12 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     Visualise.create_gif_from_folder(pointclouds_folder, os.path.join(gif_folder,'pointcloud.gif'))
     Visualise.create_gif_from_folder(pointclouds_overlay_folder, os.path.join(gif_folder,'pointcloud_layers.gif'))
     Visualise.create_gif_from_folder(occ_folder, os.path.join(gif_folder,'occurrence.gif'))
+    Visualise.create_gif_from_folder(occ_hist_folder, os.path.join(gif_folder,'occurrence_hist.gif'))
 
     # check scene data size, if more than 100MB give a warning message to add it to the gitignore
     data_size = os.path.getsize(scene_data_path)
     if (data_size > 100000000):
-        print(f'DATA FILE {scene_data_path} \nIS TOO BIG FOR GITHUB: ADD IT TO THE GITIGNORE FILE')
+        print(f'\nDATA FILE {scene_data_path} \nIS TOO BIG FOR GITHUB: ADD IT TO THE GITIGNORE FILE')
     print('Done')
 
 def get_global_max(map):

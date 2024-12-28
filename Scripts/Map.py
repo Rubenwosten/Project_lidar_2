@@ -47,13 +47,13 @@ class Map:
             print('patch = {}'.format(self.patch))
 
         # initialise a cell grid 
-        self.grid = Grid(self.patch, RES, len(self.samples))
+        self.grid = Grid(self.patch, RES, len(self.samples), RANGE)
 
         # get all records within your map
         self.rec = self.get_records_in_patch(self.patch)
 
     def update(self, sample, i, weights):
-        self.grid.calc_total_vars(range=self.range, ego=self.ego_positions[i], i=i, weights=weights)
+        self.grid.calc_total_vars(rang=self.range, ego=self.ego_positions[i], i=i, weights=weights)
         # Add a visualise total plots statement?
 
     def get_scene(self, index):
