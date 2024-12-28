@@ -39,10 +39,12 @@ LIDAR_DECAY = 0.3 # amount of occurrence that goes down per lidar point
 risk_weights = (0.5, 2, 10)# (0.5, 2, 10) # static, detection, tracking
 
 scene_id = 1
-RESOLUTION = 2 # meter
+RESOLUTION = 0.5 # meter
 run_detect = True
 run_obj = False
+plot_layers = False
 visualise_pointcloud = True
+show_pointcloud = False
 
 def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
@@ -80,7 +82,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     map.save_grid(scene_data_path)
 
     # Generate and save the layer plot
-    Visualise.plot_layers(map.grid, layer_plot_path)
+    if plot_layers:
+        Visualise.plot_layers(map.grid, layer_plot_path)
 
     # Initialize risk calculation
     risk = Risk()
@@ -96,8 +99,12 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         #TODO add a check if it has already been set
         if run_detect:
             dec.update(sample=sample, sample_index=i, prnt=False)
-        # if i == 10:
-            # Visualise.show_lidar_pointcloud(map, dec.lidarpointV2, i)
+
+        if show_pointcloud and i == 0:
+            Visualise.show_lidar_pointcloud_2d(dec.lidarpoint2d, i)
+            Visualise.show_lidar_pointcloud_3d(dec.lidarpointV2, i)
+            return
+        
         # Save individual pointcloud plots
         if visualise_pointcloud:
             Visualise.save_pointcloud_scatterplot(map, dec.lidarpoint, i, pointclouds_folder, overlay=False)

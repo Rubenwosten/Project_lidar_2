@@ -19,6 +19,7 @@ class Detect:
         self.ego = self.map.ego_positions
         self.reso = map.grid.res
         self.lidarpoint = []
+        self.lidarpoint2d = []
         self.lidarpointV2 = []
         self.width = self.map.grid.width
         self.length = self.map.grid.length
@@ -39,19 +40,20 @@ class Detect:
         
         if self._sample != self.oud: # alleen runnen als sample veranderd
             self.lidarpoint = []
+            self.lidarpoint2d = []
             self.lidarpointV2 = []
             self.file_get()
             #print ("file complete")
             info = self.nusc.get('sample', self._sample)
             info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
-            print (info)
+            # print (info)
             sen_info = self.nusc.get('calibrated_sensor', info['calibrated_sensor_token'])
-            print(sen_info)
+            # print(sen_info)
             info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
-            print (info_2)
+            # print (info_2)
             rot_2 = np.arctan2((2*(sen_info['rotation'][0]*sen_info['rotation'][3]+sen_info['rotation'][1]*sen_info['rotation'][2])),(1-2*(sen_info['rotation'][3]**2+sen_info['rotation'][2]**2)))
             rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) 
-            print (rot)
+            # print (rot)
             rot_matrix = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
             rot_matrix_2 = np.array([[np.cos(rot_2), -np.sin(rot_2)], [np.sin(rot_2), np.cos(rot_2)]])
             xy_lidar = np.array([sen_info['translation'][0], sen_info['translation'][1]]).reshape(-1, 1) 
@@ -90,25 +92,31 @@ class Detect:
             while number != b"":
                 quo, rem = divmod(som,5) #omdat je alleen x en y wilt gebruiken en niet de andere dingen kijk je naar het residu van het item waar die op zit.
                 if rem == 0: # als het residu = 0 heb je het x coordinaat en res = 1 is het y-coordinaat
-                    
-                    x = np.frombuffer(number, dtype=np.float32)
-                    
+                    x = np.frombuffer(number, dtype=np.float32)[0]
                     number = f.read(4) #leest de volgende bit    
-                if rem ==1:
-                    np.frombuffer(number, dtype=np.float32)
-                    y = np.frombuffer(number, dtype=np.float32)
+                elif rem ==1:
+                    y = np.frombuffer(number, dtype=np.float32)[0]
+                    number = f.read(4) #leest de volgende bit  
+                elif rem == 2:
+                    z = np.frombuffer(number, dtype=np.float32)[0]
                     
                     xy = np.array([x, y]).reshape(-1, 1)
+
+                    self.lidarpoint2d.append((x, y))
+                    self.lidarpointV2.append((x, y, z))
+
                     xy_rotated = np.dot(rot_2, xy)
                     xy_rot_2 = xy_rotated+xy_l
                     xy_rot = np.dot(rot_matrix, xy_rot_2)
+
+                    
                     x_frame = (xy_rot[0]+self._x-self.patchxmin)/self.reso
                     y_frame = (xy_rot[1]+self._y-self.patchymin)/self.reso
                     self.lidarpoint.append((x_frame,y_frame))
-                    print("rot_2 shape:", rot_2.shape)
-                    print("xy shape:", xy.shape)
-                    print("rot_matrix shape:", rot_matrix.shape)
-                    print (x_frame)
+                    # print("rot_2 shape:", rot_2.shape)
+                    # print("xy shape:", xy.shape)
+                    # print("rot_matrix shape:", rot_matrix.shape)
+                    # print (x_frame)
                     x_frame = int(np.round(x_frame))  # Rounds before conversion.
                     y_frame = int(np.round(y_frame))
                     lidar_punt += 1

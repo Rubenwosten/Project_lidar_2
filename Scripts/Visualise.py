@@ -390,7 +390,30 @@ class Visualise:
         print(f"Point cloud scatter plot for iteration {iteration} saved as '{plot_filename}'.")
 
     @staticmethod
-    def show_lidar_pointcloud(map, pointcloud, i):
+    def show_lidar_pointcloud_2d(pointcloud, i):
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+
+        # Extract X, Y, Z coordinates from the point cloud
+        x_coords = [point[0] for point in pointcloud]
+        y_coords = [point[1] for point in pointcloud]
+
+        # Scatter plot of the 3D point cloud
+        ax.scatter(x_coords, y_coords, c='black', s=1, marker='.')
+
+        # Setting the labels and title
+        ax.set_title(f"3D Point Cloud Iteration {i}")
+        ax.set_xlabel("X (Global Coordinates)")
+        ax.set_ylabel("Y (Global Coordinates)")
+
+        lim = 10
+        ax.set_xlim(-lim,lim)
+        ax.set_ylim(-lim,lim)
+        plt.show()
+
+
+    @staticmethod
+    def show_lidar_pointcloud_3d(pointcloud, i):
 
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection='3d')
@@ -403,31 +426,17 @@ class Visualise:
         # Scatter plot of the 3D point cloud
         ax.scatter(x_coords, y_coords, z_coords, c='black', s=1, marker='.')
 
-        '''
-        # Plot the red box at the ego position
-        ego_pos = map.ego_positions[i]
-        ego_x, ego_y, ego_z = ego_pos
-
-        ego_box_size = 0.5  # Define the size of the red box (adjust as needed) in meters
-        red_box = Rectangle(
-            (ego_x - ego_box_size / 2, ego_y - ego_box_size / 2),  # Bottom-left corner
-            ego_box_size, ego_box_size,  # Width and height
-            linewidth=2, edgecolor='red', facecolor='none'
-        )
-        ax.add_patch(red_box)  # Add the red box to the plot
-        '''
-
         # Setting the labels and title
         ax.set_title(f"3D Point Cloud Iteration {i}")
         ax.set_xlabel("X (Global Coordinates)")
         ax.set_ylabel("Y (Global Coordinates)")
         ax.set_zlabel("Z (Global Coordinates)")
 
-        lim = 50
+        lim = 10
         ax.set_xlim(-lim,lim)
         ax.set_ylim(-lim,lim)
         plt.show()
-
+    
     @staticmethod
     def create_gif_from_folder(image_folder, output_gif_path, duration=500):
         """
@@ -508,3 +517,20 @@ class Visualise:
         plt.savefig(plot_filename)
         plt.close()
         print(f"{title} plot saved as '{plot_filename}'.")
+
+    @staticmethod
+    def show_lidarpointcloud_nusc(map, i):
+        
+        first = map.scene['first_sample_token']
+        last = map.scene['last_sample_token']
+
+        samples = []
+        sample = first
+        while sample != last:
+            samples.append(sample)
+            info = map.nusc.get('sample', sample)
+            sample = info['next']
+        samples.append(last)
+
+        my_sample = map.nusc.get('sample', samples[i])
+        map.nusc.render_sample_data(my_sample['data']['LIDAR_TOP'], nsweeps=1, underlay_map=True)
