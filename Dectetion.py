@@ -44,12 +44,18 @@ class Detect:
             #print ("file complete")
             info = self.nusc.get('sample', self._sample)
             info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
+            print (info)
+            sen_info = self.nusc.get('calibrated_sensor', info['calibrated_sensor_token'])
+            print(sen_info)
             info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
             print (info_2)
-            rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) - np.pi
+            rot_2 = np.arctan2((2*(sen_info['rotation'][0]*sen_info['rotation'][3]+sen_info['rotation'][1]*sen_info['rotation'][2])),(1-2*(sen_info['rotation'][3]**2+sen_info['rotation'][2]**2)))
+            rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) 
             print (rot)
             rot_matrix = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
-            self.lidar_coor(rot)
+            rot_matrix_2 = np.array([[np.cos(rot_2), -np.sin(rot_2)], [np.sin(rot_2), np.cos(rot_2)]])
+            xy_lidar = np.array([sen_info['translation'][0], sen_info['translation'][1]]).reshape(-1, 1) 
+            self.lidar_coor(rot_matrix, rot_matrix_2, xy_lidar )
             #print("lidar complete")
             if prnt:
                 print ("file complete")
@@ -73,7 +79,7 @@ class Detect:
         self.file = os.path.join(self.dataroot, info_2['filename'])
         
 
-    def lidar_coor(self, rot_matrix):#Deze functie Loopt door het bestand heen. Het bestand heeft per Lidar punt een x, y, z coordinaten en de channel index + reflectifity
+    def lidar_coor(self, rot_matrix, rot_2, xy_l):#Deze functie Loopt door het bestand heen. Het bestand heeft per Lidar punt een x, y, z coordinaten en de channel index + reflectifity
 
         som = 0
         lidar_punt = 0
@@ -91,16 +97,20 @@ class Detect:
                 if rem ==1:
                     np.frombuffer(number, dtype=np.float32)
                     y = np.frombuffer(number, dtype=np.float32)
-                    x = x*np.cos(rot_matrix) - y*np.sin(rot_matrix)
-                    y= x*np.sin(rot_matrix) + y*np.cos(rot_matrix)
-                    xy= np.array([x,y])
-                    xy_rotated = np.dot(rot_matrix, xy)
-                    x_frame = (x+self._x-self.patchxmin)/self.reso
-                    y_frame = (y+self._y-self.patchymin)/self.reso
+                    
+                    xy = np.array([x, y]).reshape(-1, 1)
+                    xy_rotated = np.dot(rot_2, xy)
+                    xy_rot_2 = xy_rotated+xy_l
+                    xy_rot = np.dot(rot_matrix, xy_rot_2)
+                    x_frame = (xy_rot[0]+self._x-self.patchxmin)/self.reso
+                    y_frame = (xy_rot[1]+self._y-self.patchymin)/self.reso
                     self.lidarpoint.append((x_frame,y_frame))
-
-                    x_frame = int(x_frame)
-                    y_frame = int(y_frame)
+                    print("rot_2 shape:", rot_2.shape)
+                    print("xy shape:", xy.shape)
+                    print("rot_matrix shape:", rot_matrix.shape)
+                    print (x_frame)
+                    x_frame = int(np.round(x_frame))  # Rounds before conversion.
+                    y_frame = int(np.round(y_frame))
                     lidar_punt += 1
 
                     x_global = x + self._x
