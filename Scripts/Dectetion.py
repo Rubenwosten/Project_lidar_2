@@ -48,16 +48,10 @@ class Detect:
             sen_info = self.nusc.get('calibrated_sensor', info['calibrated_sensor_token'])
             print(sen_info)
             info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
-<<<<<<< HEAD:Dectetion.py
             print (info_2)
             rot_2 = np.arctan2((2*(sen_info['rotation'][0]*sen_info['rotation'][3]+sen_info['rotation'][1]*sen_info['rotation'][2])),(1-2*(sen_info['rotation'][3]**2+sen_info['rotation'][2]**2)))
             rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) 
             print (rot)
-=======
-            # print (info_2)
-            rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) - np.pi
-            # print (rot)
->>>>>>> e0d1c82c6c7294711b1a97d094d35e237476bb6c:Scripts/Dectetion.py
             rot_matrix = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
             rot_matrix_2 = np.array([[np.cos(rot_2), -np.sin(rot_2)], [np.sin(rot_2), np.cos(rot_2)]])
             xy_lidar = np.array([sen_info['translation'][0], sen_info['translation'][1]]).reshape(-1, 1) 
