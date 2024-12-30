@@ -25,8 +25,8 @@ P_false = 10**-4 # false trigger mochten klein zetten
 car_height = 1.8
 
 class subsample():
-    def __init__(self, power, dataroot, map, n_cones, lidar_range):
-        self.power = power
+    def __init__(self, dataroot, map, n_cones, lidar_range):
+        self._power = None
         self._sample = None
         self.oud = None
         self.file = None
@@ -37,6 +37,8 @@ class subsample():
         self.n_cones = n_cones
         self.max_range = lidar_range
         self._scene = None
+        self.count = None
+        self.count_new = None
 
 
 
@@ -46,25 +48,43 @@ class subsample():
     
     @sample.setter
     def sample(self, values): #values is een tuple van sample ego_x en ego_y
-        self._sample, self._sampleindex, self._scene = values
+        self._sample, self._sampleindex, self._scene, self._power = values
         if self._sample != self.oud: # alleen runnen als sample veranderd
             self.lidarpoint = []
             self.subsamp = []
+            self.count = 0
+            self.count_new = 0
             info = self.nusc.get('sample', self._sample)
-            rot = info['rotation']
-            rot_matrix = np.array([np.cos(rot),-np.sin(rot)],[np.sin(rot),np.cos(rot)])
+            info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
+            
+            sen_info = self.nusc.get('calibrated_sensor', info['calibrated_sensor_token'])
+            
+            info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
+            
+            rot_2 = np.arctan2((2*(sen_info['rotation'][0]*sen_info['rotation'][3]+sen_info['rotation'][1]*sen_info['rotation'][2])),(1-2*(sen_info['rotation'][3]**2+sen_info['rotation'][2]**2)))
+            rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) 
+            xy_lidar = np.array([sen_info['translation'][0], sen_info['translation'][1]]).reshape(-1, 1) 
+            rot_matrix = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
+            rot_matrix_2 = np.array([[np.cos(rot_2), -np.sin(rot_2)], [np.sin(rot_2), np.cos(rot_2)]])
 
             self.file_get()
-            self.lidar_coor()
+            self.lidar_coor(rot_matrix,rot_matrix_2, xy_lidar)
             cones = self.cones()
+            print (self.lidar_punt)
+            print (cones)
             for i in range(self.lidar_punt):
-                a,d = self.a_d(self.lidarpoint[i][0],self.lidarpoint[i][1], self.lidarpoint[i][2], rot_matrix)
-                if d <= self.max_range:
-                    for i, (start_angle, end_angle) in enumerate(cones):
+                a,d = self.a_d(self.lidarpoint[i][0],self.lidarpoint[i][1], self.lidarpoint[i][2])
+                if a < 0:
+                    a = a+360
+                if d <= (self.max_range+200):
+                    for j, (start_angle, end_angle) in enumerate(cones):
                         if start_angle <= a < end_angle:
-                            pro = self.calc_proba(self.power[i], d)
-                            if pro >= 0.95:
+                            pro = self.calc_proba(self._power[j], d)
+                            if pro >= 0.9:
                                 self.subsamp.append((self.lidarpoint[i]))
+                                self.count_new +=1
+                else: self.count+=1
+                            
 
 
 
@@ -75,7 +95,7 @@ class subsample():
         info_2 = self.nusc.get('sample_data',info['data']['LIDAR_TOP'])
         self.file = os.path.join(self.dataroot, info_2['filename'])
 
-    def lidar_coor(self):
+    def lidar_coor(self, rot_1, rot_2, xy_l):
 
         som = 0
         
@@ -85,30 +105,33 @@ class subsample():
             while number != b"":
                 quo, rem = divmod(som,5) #omdat je alleen x en y wilt gebruiken en niet de andere dingen kijk je naar het residu van het item waar die op zit.
                 if rem == 0: # als het residu = 0 heb je het x coordinaat en res = 1 is het y-coordinaat
-                    x = np.frombuffer(number, dtype=np.float32)
+                    x = np.frombuffer(number, dtype=np.float32)[0]
                     number = f.read(4) #leest de volgende bit    
-                if rem ==1:
-                    y = np.frombuffer(number, dtype=np.float32)
+                elif rem ==1:
+                    y = np.frombuffer(number, dtype=np.float32)[0]
                     number = f.read(4) #leest de volgende bit
-                if rem ==2:
-                    z = np.frombuffer(number, dtype=np.float32)
+                elif rem ==2:
+                    z = np.frombuffer(number, dtype=np.float32)[0]
                     number = f.read(4) #leest de volgende bit
-                if rem == 3:
-                    intensity = np.frombuffer(number,dtype=np.float32)
+                elif rem == 3:
+                    intensity = np.frombuffer(number,dtype=np.float32)[0]
                     number = f.read(4) #leest de volgende bit
-                if rem == 4:
-                    ring_index = np.frombuffer(number,dtype=np.float32)
-                    self.lidarpoint.append((x,y,z,intensity,ring_index))
+                elif rem == 4:
+                    xy = np.array([x, y]).reshape(-1, 1)
+                    xy_rotated = np.dot(rot_2, xy)
+                    xy_rot_2 = xy_rotated+xy_l
+                    xy_rot = np.dot(rot_1, xy_rot_2)
+                    
+                    ring_index = np.frombuffer(number,dtype=np.float32)[0]
+                    self.lidarpoint.append((xy_rot[0],xy_rot[1],z,intensity,ring_index))
                     self.lidar_punt += 1
                     number = f.read(4)
                 else:
                     number = f.read(4) #leest de volgende bit
                 som +=1 # som houdt bij hoeveel items gelezen zijn.
 
-    def a_d (self, x, y, z, rot):
-        xy = np.array([x,y])
-        xy_rot = np.dot(rot,xy)
-        angle = math.degrees(math.atan2((xy_rot[1]),(xy_rot[0])))
+    def a_d (self, x, y, z):
+        angle = math.degrees(math.atan2((y),(x)))
         distance = math.sqrt((y)**2 + (x)**2 + (z-car_height)**2)
         return angle, distance
     
