@@ -42,9 +42,9 @@ LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
 
-risk_weights = (1, 1, 1) # (0.5, 2, 10) # static, detection, tracking
+risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
-scene_id = 4
+scene_id = 1
 RESOLUTION = 0.5 # meter
 run_detect = True
 run_obj = False
@@ -93,8 +93,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY, constan
 
     # Assign layers to the grid in parallel
     map.assign_layer(scene_data_path, prnt=False)
-
-    map.save_grid(scene_data_path)
     
     # Generate and save the layer plot
     if plot_layers:
@@ -143,7 +141,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY, constan
     map.save_grid(scene_data_path)
 
     Visualise.plot_avg_risks(map.grid, plots_folder)
-    Visualise.plot_total_var(map.grid.avg_occ, 'Average Occurrence', plots_folder)
+    Visualise.plot_avg_occ(map.grid.avg_occ, 'Average Occurrence', plots_folder)
     Visualise.plot_total_var(map.grid.total_obj, 'Total Objects', plots_folder)
     Visualise.plot_total_var(map.grid.total_obj_sev, 'Total Object severity', plots_folder)
     Visualise.plot_avg_occ_histogram(map, plots_folder)

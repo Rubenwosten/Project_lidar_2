@@ -519,6 +519,26 @@ class Visualise:
         print(f"{title} plot saved as '{plot_filename}'.")
 
     @staticmethod
+    def plot_avg_occ(occ, title, output_folder):
+        plt.figure(figsize=(10, 6))
+    
+        # Plot each risk
+        plt.plot(occ)
+        
+        # Add title and labels
+        plt.title(title)
+        plt.xlabel("Index")
+        plt.ylim(0,1)
+        # Show grid for better readability
+        plt.grid(True)
+        
+        # Save the plot
+        plot_filename = os.path.join(output_folder, f"{title}.png")
+        plt.savefig(plot_filename)
+        plt.close()
+        print(f"{title} plot saved as '{plot_filename}'.")
+
+    @staticmethod
     def show_lidarpointcloud_nusc(map, i):
         
         first = map.scene['first_sample_token']
