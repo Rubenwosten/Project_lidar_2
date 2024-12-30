@@ -19,17 +19,17 @@ class Grid:
 
         # Total vars
         self.cells_off_interest = []
-        self.total_total_risk = [0] * scene_length
-        self.total_static_risk = [0] * scene_length
-        self.total_detection_risk = [0] * scene_length
-        self.total_tracking_risk = [0] * scene_length
-        self.total_occ = [0] * scene_length
+        self.avg_total_risk = [0] * scene_length
+        self.avg_static_risk = [0] * scene_length
+        self.avg_detection_risk = [0] * scene_length
+        self.avg_tracking_risk = [0] * scene_length
+        self.avg_occ = [0] * scene_length
         self.total_obj = [0] * scene_length
         self.total_obj_sev = [0] * scene_length
         
         # Initialize total_occ_ranges as a 2D list
         self.ranges = np.linspace(RANGE/10, RANGE, 10)  # Default ranges: 0-10, 10-20, ..., 90-100
-        self.total_occ_ranges = [[0] * (len(self.ranges)) for _ in range(scene_length)]
+        self.avg_occ_ranges = [[0] * (len(self.ranges)) for _ in range(scene_length)]
 
         # grid instatiation
         self.grid = [[Cell(self.xarray[x], self.yarray[y], scene_length) for y in range(self.length)] for x in range(self.width)]
@@ -64,12 +64,27 @@ class Grid:
     def calc_total_vars(self, rang, ego, i, weights):
         self.cells_off_interest = self.circle_of_interrest(rang, ego)
 
-        for cell in self.cells_off_interest:
+        self.cells_off_interest = [cell for cell in self.cells_off_interest if cell.layer != 'empty']
+        num_nonempty_cells = len(self.cells_off_interest)
+
+        # initialise the variables 
+        self.avg_total_risk[i] = 0
+        self.avg_static_risk[i] = 0
+        self.avg_detection_risk[i] = 0
+        self.avg_tracking_risk[i] = 0
+        self.avg_occ[i] = 0
+
+        for cell in self.cells_off_interest:            
             # cell variables
-            self.total_static_risk[i] += cell.static_risk
-            self.total_detection_risk[i] += cell.detect_risk[i]
-            self.total_tracking_risk[i] += cell.track_risk[i]
-            self.total_occ[i] += cell.occ[i]
+            self.avg_static_risk[i] += cell.static_risk
+            self.avg_detection_risk[i] += cell.detect_risk[i]
+            self.avg_tracking_risk[i] += cell.track_risk[i]
+            #if i == 2:
+            #    print(f'cell.detect_risk[{i}] = {cell.detect_risk[i]}')
+            self.avg_total_risk[i] += cell.total_risk[i]
+            self.avg_occ[i] += cell.occ[i]
+
+        self.avg_occ[i] /= num_nonempty_cells
 
         # Initialize sets for processed cells
         smaller_range_cells = set()
@@ -84,21 +99,25 @@ class Grid:
             exclusive_cells_in_range = current_range_cells - smaller_range_cells
 
             # Sum the occupancy values for the exclusive cells in this range
-            count_non_empty_cells = sum(1 for cell in exclusive_cells_in_range if cell.layer != 'empty')
             exclusive_cells_in_range = [cell for cell in exclusive_cells_in_range if cell.layer != 'empty']
-            self.total_occ_ranges[i][idx] = sum(cell.occ[i] for cell in exclusive_cells_in_range)/count_non_empty_cells
+            count_non_empty_cells = len(exclusive_cells_in_range)
+            self.avg_occ_ranges[i][idx] = sum(cell.occ[i] for cell in exclusive_cells_in_range)/count_non_empty_cells
 
             #print(f'current_range = {current_range}\t count_non_empty_cells = {count_non_empty_cells}\t self.total_occ_ranges[{i}][{idx}] = {round(self.total_occ_ranges[i][idx],4)}')
 
             # Update the smaller range cells to include the current range cells
             smaller_range_cells.update(current_range_cells)
-
         w_static, w_detect, w_track = weights
-        self.total_static_risk[i] *= w_static
-        self.total_detection_risk[i] *= w_detect
-        self.total_tracking_risk[i] *= w_track
 
-        self.total_total_risk[i] = self.total_static_risk[i] + self.total_detection_risk[i] + self.total_tracking_risk[i]
+        self.avg_static_risk[i] *= w_static / num_nonempty_cells
+        self.avg_detection_risk[i] *= w_detect / num_nonempty_cells
+        self.avg_tracking_risk[i] *= w_track / num_nonempty_cells
+        self.avg_total_risk[i] = self.avg_static_risk[i] + self.avg_detection_risk[i] + self.avg_tracking_risk[i]
+
+        #print(f'avg static risk it {i} = {self.avg_static_risk[i]}')
+        #print(f'avg detection risk it {i} = {self.avg_detection_risk[i]}')
+        #print(f'avg tracking risk it {i} = {self.avg_tracking_risk[i]}')
+        #print(f'avg total risk it {i} = {self.avg_total_risk[i]}')
         
         
     def circle_of_interrest(self, range, ego):
@@ -145,11 +164,11 @@ class Grid:
             'length': self.length,
             'grid': [[cell.to_dict() for cell in row] for row in self.grid],  # Convert all cells to dictionaries
             'has_assigned_layers': self.has_assigned_layers,
-            'total total risk': self.total_total_risk,
-            'total static risk': self.total_static_risk,
-            'total detection risk': self.total_detection_risk,
-            'total tracking risk': self.total_tracking_risk,
-            'total occ': self.total_occ,
+            'total total risk': self.avg_total_risk,
+            'total static risk': self.avg_static_risk,
+            'total detection risk': self.avg_detection_risk,
+            'total tracking risk': self.avg_tracking_risk,
+            'total occ': self.avg_occ,
             'total obj': self.total_obj,
             'total obj sev': self.total_obj_sev
         }
@@ -176,11 +195,11 @@ class Grid:
             [Cell.from_dict(cell_dict, scene_length) for cell_dict in row]
             for row in grid_dict['grid']
         ]
-        grid.total_total_risk = grid_dict['total total risk']
-        grid.total_static_risk = grid_dict['total static risk']
-        grid.total_detection_risk = grid_dict['total detection risk']
-        grid.total_tracking_risk = grid_dict['total tracking risk']
-        grid.total_occ = grid_dict['total occ']
+        grid.avg_total_risk = grid_dict['total total risk']
+        grid.avg_static_risk = grid_dict['total static risk']
+        grid.avg_detection_risk = grid_dict['total detection risk']
+        grid.avg_tracking_risk = grid_dict['total tracking risk']
+        grid.avg_occ = grid_dict['total occ']
         grid.total_obj = grid_dict['total obj']
         grid.total_obj_sev = grid_dict['total obj sev']
         

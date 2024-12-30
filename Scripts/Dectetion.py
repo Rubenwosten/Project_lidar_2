@@ -4,7 +4,7 @@ import os
 from Visualise import Visualise
 
 class Detect:
-    def __init__(self, map):
+    def __init__(self, map, constant_power):
         self._sample=None
         self._x = None
         self._y = None
@@ -23,6 +23,7 @@ class Detect:
         self.lidarpointV2 = []
         self.width = self.map.grid.width
         self.length = self.map.grid.length
+        self.constant_power = constant_power
 
     @property 
     def sample(self): #getter om sample aftelezen
@@ -154,25 +155,26 @@ class Detect:
         for row in self.map.grid.grid:
             # Iterate through each cell in the current row
             for cell in row:
-                # Retrieve the lidar count for the current sample index
-                lidar_punten = cell.lidar_aantal[self._sampleindex]
-                
-                # Determine the base occurrence (`occ`) value to update
-                if self._sampleindex == 0:
-                    # For the first sample index, use the current occurrence
-                    occ = cell.occ[self._sampleindex]
-                else:
-                    # For subsequent indices, use the occurrence from the previous index
-                    occ = cell.occ[self._sampleindex - 1]
-                
-                # Add the standard occurrence accumulation
-                occ += self.map.OCC_ACCUM
-                
-                # Decay the occurrence based on lidar points and clamp it between 0 and 1
-                occ = max(0, min(occ - self.map.LIDAR_DECAY * lidar_punten, 1))
-                
-                # Update the occurrence value for the current sample index in the cell
-                cell.occ[self._sampleindex] = occ
+                if cell.layer != 'empty':
+                    # Retrieve the lidar count for the current sample index
+                    lidar_punten = cell.lidar_aantal[self._sampleindex]
+                    
+                    # Determine the base occurrence (`occ`) value to update
+                    if self._sampleindex == 0:
+                        # For the first sample index, use the current occurrence
+                        occ = cell.occ[self._sampleindex]
+                    else:
+                        # For subsequent indices, use the occurrence from the previous index
+                        occ = cell.occ[self._sampleindex - 1]
+                    
+                    # Add the standard occurrence accumulation
+                    occ += self.map.OCC_ACCUM
+                    
+                    # Decay the occurrence based on lidar points and clamp it between 0 and 1
+                    occ = max(0, min(occ - self.map.LIDAR_DECAY * lidar_punten, 1))
+                    
+                    # Update the occurrence value for the current sample index in the cell
+                    cell.occ[self._sampleindex] = occ
 
     def update_risk(self):
         for row in self.map.grid.grid:

@@ -130,7 +130,7 @@ class Visualise:
         Visualise.show_occ(grid, i)
         plt.savefig(occ_plot_filename)
         plt.close() 
-        print(f"Risk plot for iteration {i} saved as '{occ_plot_filename}'.")
+        print(f"Occurrence plot for iteration {i} saved as '{occ_plot_filename}'.")
 
     @staticmethod
     def show_risks(grid, index):
@@ -472,19 +472,19 @@ class Visualise:
         print(f"GIF saved as {output_gif_path}")
 
     @staticmethod
-    def plot_total_risks(grid, output_folder):
+    def plot_avg_risks(grid, output_folder):
         plt.figure(figsize=(10, 6))
     
         # Plot each risk
-        plt.plot(grid.total_total_risk, label="Total Total Risk", marker='+')
-        plt.plot(grid.total_static_risk, label="Total Static Risk", marker='o')
-        plt.plot(grid.total_detection_risk, label="Total Detection Risk", marker='x')
-        plt.plot(grid.total_tracking_risk, label="Total Tracking Risk", marker='s')
+        plt.plot(grid.avg_total_risk, label="Average Total Risk", marker='+')
+        plt.plot(grid.avg_static_risk, label="Average Static Risk", marker='o')
+        plt.plot(grid.avg_detection_risk, label="Average Detection Risk", marker='x')
+        plt.plot(grid.avg_tracking_risk, label="Average Tracking Risk", marker='s')
         
         # Add title and labels
-        plt.title("Total Risks Overview")
+        plt.title("Average Risks Overview")
         plt.xlabel("Index")
-        plt.ylabel("Risk Value")
+        plt.ylabel("Average Risk Value")
         
         # Add legend
         plt.legend()
@@ -493,10 +493,10 @@ class Visualise:
         plt.grid(True)
         
         # Save the plot
-        plot_filename = os.path.join(output_folder, "total risks.png")
+        plot_filename = os.path.join(output_folder, "Average Risks.png")
         plt.savefig(plot_filename)
         plt.close()
-        print(f"total risks plot saved as '{plot_filename}'.")
+        print(f"Average risks plot saved as '{plot_filename}'.")
 
     @staticmethod
     def plot_total_var(var, title, output_folder):
@@ -545,7 +545,7 @@ class Visualise:
         :param timestep: The timestep (index) to plot the histogram for.
         """
         ranges = map.grid.ranges
-        total_occ_ranges = map.grid.total_occ_ranges
+        total_occ_ranges = map.grid.avg_occ_ranges
         # Validate timestep
         if not (0 <= timestep < len(total_occ_ranges)):
             raise ValueError(f"Timestep {timestep} is out of bounds. Must be between 0 and {len(total_occ_ranges) - 1}.")
@@ -583,14 +583,14 @@ class Visualise:
         :param timestep: The timestep (index) to plot the histogram for.
         """
         ranges = map.grid.ranges
-        total_occ_ranges = map.grid.total_occ_ranges
+        avg_occ_ranges = map.grid.avg_occ_ranges
 
         ranges = np.append(0, ranges)
         # Generate range labels
         range_labels = [f"{ranges[i]:.1f}-{ranges[i+1]:.1f}m" for i in range(len(ranges)-1)]
 
         # Compute the average occurrence across all timesteps
-        avg_occ_values = np.mean(total_occ_ranges, axis=0)
+        avg_occ_values = np.mean(avg_occ_ranges, axis=0)
 
         # Plot the histogram
         plt.figure(figsize=(10, 6))
