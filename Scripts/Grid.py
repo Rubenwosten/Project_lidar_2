@@ -61,13 +61,13 @@ class Grid:
 
         return layer_counts
     
-    def calc_total_vars(self, rang, ego, i, weights):
+    def calc_avg_vars(self, rang, ego, i, weights):
         self.cells_off_interest = self.circle_of_interrest(rang, ego)
 
         self.cells_off_interest = [cell for cell in self.cells_off_interest if cell.layer != 'empty']
         num_nonempty_cells = len(self.cells_off_interest)
 
-        # initialise the variables 
+        # reset the variables 
         self.avg_total_risk[i] = 0
         self.avg_static_risk[i] = 0
         self.avg_detection_risk[i] = 0
@@ -79,8 +79,6 @@ class Grid:
             self.avg_static_risk[i] += cell.static_risk
             self.avg_detection_risk[i] += cell.detect_risk[i]
             self.avg_tracking_risk[i] += cell.track_risk[i]
-            #if i == 2:
-            #    print(f'cell.detect_risk[{i}] = {cell.detect_risk[i]}')
             self.avg_total_risk[i] += cell.total_risk[i]
             self.avg_occ[i] += cell.occ[i]
 
@@ -109,15 +107,10 @@ class Grid:
             smaller_range_cells.update(current_range_cells)
         w_static, w_detect, w_track = weights
 
-        self.avg_static_risk[i] *= w_static / num_nonempty_cells
-        self.avg_detection_risk[i] *= w_detect / num_nonempty_cells
-        self.avg_tracking_risk[i] *= w_track / num_nonempty_cells
-        self.avg_total_risk[i] = self.avg_static_risk[i] + self.avg_detection_risk[i] + self.avg_tracking_risk[i]
-
-        #print(f'avg static risk it {i} = {self.avg_static_risk[i]}')
-        #print(f'avg detection risk it {i} = {self.avg_detection_risk[i]}')
-        #print(f'avg tracking risk it {i} = {self.avg_tracking_risk[i]}')
-        #print(f'avg total risk it {i} = {self.avg_total_risk[i]}')
+        self.avg_static_risk[i] /= num_nonempty_cells
+        self.avg_detection_risk[i] /= num_nonempty_cells
+        #self.avg_tracking_risk[i] /= num_nonempty_cells
+        self.avg_total_risk[i] = w_static * self.avg_static_risk[i] + w_detect * self.avg_detection_risk[i] + w_track * self.avg_tracking_risk[i]
         
         
     def circle_of_interrest(self, range, ego):

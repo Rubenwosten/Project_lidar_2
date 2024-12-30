@@ -52,9 +52,8 @@ class Map:
         # get all records within your map
         self.rec = self.get_records_in_patch(self.patch)
 
-    def update(self, sample, i, weights):
-        self.grid.calc_total_vars(rang=self.range, ego=self.ego_positions[i], i=i, weights=weights)
-        # Add a visualise total plots statement?
+    def update(self, i, weights):
+        self.grid.calc_avg_vars(rang=self.range, ego=self.ego_positions[i], i=i, weights=weights)
 
     def get_scene(self, index):
         #sample array
