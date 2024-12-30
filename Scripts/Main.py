@@ -107,7 +107,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY, constan
         Visualise.plot_layers(map.grid, layer_plot_path)
 
     # Initialize components for risk calculation, object tracking, and detection
-    risk = Risk()
+    risk = Risk(risk_weights)
     obj = Object(map)
     dec = Detect(map, constant_power=constant_power)
 
@@ -129,10 +129,10 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY, constan
         print(f"sample {i} complete\n")
 
     # Normalize risk data and calculate total risk
-    normalise_and_calc_risks(map, risk_weights)
+    risk.normalise_and_calc_risks(map)
 
     # Retrieve global maxima for visualization scaling
-    maxs = get_global_max(map=map)
+    maxs = map.get_global_max()
 
     # Update map grid with risk and object metrics, and generate plots for each sample
     for i, sample in enumerate(map.samples):
@@ -178,34 +178,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY, constan
 
     print('Done')  # End of the main function
 
-
-def get_global_max(map):
-    """
-    Finds the global maximum values for total, static, detect, and track risks in the map.
-
-    Returns:
-    tuple: Maximum values for (total, static, detect, track) risks.
-    """
-    max_total = max(np.max(np.array(matrix)) for matrix in [map.grid.get_total_risk_matrix(i) for i in range(map.grid.scene_length)])
-    max_static = np.max(np.array(map.grid.get_static_risk_matrix()))
-    max_detect = max(np.max(np.array(matrix)) for matrix in [map.grid.get_detect_risk_matrix(i) for i in range(map.grid.scene_length)])
-    max_track = max(np.max(np.array(matrix)) for matrix in [map.grid.get_track_risk_matrix(i) for i in range(map.grid.scene_length)])
-    return (max_total, max_static, max_detect, max_track)
-
-def normalise_and_calc_risks(map, weights):
-    """
-    Normalizes risks and calculates total risk per cell using given weights.
-    """
-    max_total, max_static, max_detect, max_track = [value if value > 0 else 1 for value in get_global_max(map)]
-    w_s, w_d, w_t = weights
-    
-    for row in map.grid.grid:
-        for cell in row:
-            cell.static_risk /= max_static
-            cell.detect_risk = [detect_risk/max_detect for detect_risk in cell.detect_risk]
-            cell.track_risk = [track_risk/max_track for track_risk in cell.track_risk]
-            for i in range(len(cell.detect_risk)):
-                cell.total_risk[i] = w_s * cell.static_risk + w_d * cell.detect_risk[i] + w_t * cell.track_risk[i]
 
 # This ensures that the code is only executed when the script is run directly
 if __name__ == '__main__':

@@ -154,6 +154,19 @@ class Map:
                 rec[layer][record] = info
         return rec
     
+    def get_global_max(self):
+        """
+        Finds the global maximum values for total, static, detect, and track risks in the map.
+
+        Returns:
+        tuple: Maximum values for (total, static, detect, track) risks.
+        """
+        max_total = max(np.max(np.array(matrix)) for matrix in [self.grid.get_total_risk_matrix(i) for i in range(self.grid.scene_length)])
+        max_static = np.max(np.array(self.grid.get_static_risk_matrix()))
+        max_detect = max(np.max(np.array(matrix)) for matrix in [self.grid.get_detect_risk_matrix(i) for i in range(self.grid.scene_length)])
+        max_track = max(np.max(np.array(matrix)) for matrix in [self.grid.get_track_risk_matrix(i) for i in range(self.grid.scene_length)])
+        return (max_total, max_static, max_detect, max_track)
+    
     # Save the grid object
     def save_grid(self, filename):
         print('\nSAVING MAP: DO NOT KILL TERMINAL\n')
