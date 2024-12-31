@@ -1,11 +1,10 @@
-
-
 import numpy as np
 import time
 from tqdm import tqdm
 from Grid import Grid
 import pickle
 import os
+import shutil
 
 from concurrent.futures import ThreadPoolExecutor, as_completed, ProcessPoolExecutor
 
@@ -117,28 +116,39 @@ class Map:
         elapsed_time = time.time() - start_time
         print(f"Grid layers were assigned in {elapsed_time} seconds")
 
+    @staticmethod
     # This function assigns the layers variable of each cell based on the records within the map
-    def assign_layer(self, filename, prnt=False):
+    def assign_layers(filenames, maps, prnt=False):
         """
         Assigns the layers variable of each cell based on the records within the map.
         Adds the resolution value to the filename dynamically.
 
-        :param base_filename: The base filename without resolution value
+        :param filenames: A tuple containing the filenames for constant and variable power simulations
         :param prnt: Whether to print debug information
         """
+        filename_cons, filename_var = filenames
 
-        # Check if the file with the specific resolution exists
-        if os.path.exists(filename):
-            print(f"File '{filename}' was found. Loading ...")
-            self.load_grid(filename)
+        # Handle the constant power simulation
+        if os.path.exists(filename_cons):
+            print(f"File '{filename_cons}' was found. Loading ...")
+            maps[0].load_grid(filename_cons)
         else:
-            # If the file does not exist, print a message and assign layers manually
-            print(f"File '{filename}' not found. Assigning layers to the grid.")
-            self.assign_lay(prnt)
+            print(f"File '{filename_cons}' not found. Assigning layers to the grid.")
+            maps[0].assign_lay(prnt)
 
             # Save the updated grid to the file
-            self.save_grid(filename)
-            print(f"Grid saved to '{filename}'.")
+            maps[0].save_grid(filename_cons)
+            print(f"Grid saved to '{filename_cons}'.")
+
+        # Handle the variable power simulation
+        if os.path.exists(filename_var):
+            print(f"File '{filename_var}' was found. Loading ...")
+            maps[1].load_grid(filename_var)
+        else:
+            print(f"File '{filename_var}' not found. Copying from constant power simulation.")
+            shutil.copy(filename_cons, filename_var)
+            print(f"File copied to '{filename_var}'.")
+            maps[1].load_grid(filename_var)
 
 
     # this function getsall the records within the patch of the map

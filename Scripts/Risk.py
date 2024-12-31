@@ -21,11 +21,11 @@ class Risk:
             for cell in cells:
                 cell.total_risk[i] = w_static * cell.static_risk + w_detect * cell.detect_risk[i] + w_track * cell.track_risk[i]
         
-    def normalise_and_calc_risks(self, map):
+    def normalise_and_calc_risks(self, map, maxs):
         """
         Normalizes risks and calculates total risk per cell using given weights.
         """
-        max_total, max_static, max_detect, max_track = [value if value > 0 else 1 for value in map.get_global_max()]
+        max_total, max_static, max_detect, max_track = [value if value > 0 else 1 for value in maxs]
         w_s, w_d, w_t = self.weights
         
         for row in map.grid.grid:
@@ -34,4 +34,4 @@ class Risk:
                 cell.detect_risk = [detect_risk/max_detect for detect_risk in cell.detect_risk]
                 cell.track_risk = [track_risk/max_track for track_risk in cell.track_risk]
                 for i in range(len(cell.detect_risk)):
-                    cell.total_risk[i] = w_s * cell.static_risk + w_d * cell.detect_risk[i] + w_t * cell.track_risk[i]
+                    cell.total_risk[i] = w_s * cell.static_risk + w_d * cell.detect_risk[i] + w_t * cell.track_risk[i]/max_total

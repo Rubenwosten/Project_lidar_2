@@ -45,136 +45,181 @@ LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
 scene_id = 1
-RESOLUTION = 0.5 # meter
-run_detect = False
+RESOLUTION = 2 # meter
+run_detect = True
 run_obj = False
-plot_layers = False
-plot_pointcloud = False
+plot_layers = True
+plot_pointcloud = True
 show_pointcloud = False
-plot_occ_hist = False
-plot_occ = False
-plot_risk = False
+plot_occ_hist = True
+plot_occ = True
+plot_risk = True
 
-constant_power = True
-
-def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY, constant_power):
+def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # Entry point for the main simulation function
     print("Starting main function...")
 
     # Initialize the map object with given parameters
-    map = Map(dataroot, map_name, map_width, map_height, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY)
-
-    # Determine the simulation type based on power mode
-    if constant_power:
-        sim_type = 'Constant Power'
-    else:
-        sim_type = 'Variable Power'
+    map_const = Map(dataroot, map_name, map_width, map_height, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY)
+    map_var = Map(dataroot, map_name, map_width, map_height, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY)
+    maps = [map_const, map_var]
 
     # Create a folder structure to save the run results and plots
-    run_folder = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", sim_type)
-    os.makedirs(run_folder, exist_ok=True)  # Ensure the directory exists
+    run_folder_cons = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Constant Power')
+    run_folder_var = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Variable Power')
+    run_folders = [run_folder_cons, run_folder_var]
 
-    # Create subdirectories for storing plots and GIFs
-    plots_folder = os.path.join(run_folder, 'plots')
-    os.makedirs(plots_folder, exist_ok=True)
+    plots_folders = []
+    gif_folders = []
+    scene_data_paths = []
+    plots_folders = []
+    
+    layer_plot_paths = []
+    pointclouds_folders = []
+    pointclouds_overlay_folders = []
 
-    gif_folder = os.path.join(run_folder, 'GIFs')
-    os.makedirs(gif_folder, exist_ok=True)
+    risk_plots_folders = []
+    occ_folders = []
+    occ_hist_folders = []
 
-    # Paths for data and specific plots
-    scene_data_path = os.path.join(run_folder, "data")
-    layer_plot_path = os.path.join(plots_folder, "layers.png")
+    for run, run_folder in enumerate(run_folders):
+        os.makedirs(run_folder, exist_ok=True)  # Ensure the directory exists
 
-    # Subdirectories for specific plot types
-    risk_plots_folder = os.path.join(plots_folder, "risks")
-    pointclouds_folder = os.path.join(plots_folder, "pointclouds")
-    pointclouds_overlay_folder = os.path.join(plots_folder, "pointclouds overlay")
-    occ_folder = os.path.join(plots_folder, "occurrence")
-    occ_hist_folder = os.path.join(plots_folder, "occurrence histograms")
+        # Create subdirectories for storing plots and GIFs
+        plots_folders.append(os.path.join(run_folder, 'plots'))
+        os.makedirs(plots_folders[run], exist_ok=True)
 
-    # Ensure subdirectories exist
-    os.makedirs(risk_plots_folder, exist_ok=True)
-    os.makedirs(pointclouds_folder, exist_ok=True)
-    os.makedirs(pointclouds_overlay_folder, exist_ok=True)
-    os.makedirs(occ_folder, exist_ok=True)
-    os.makedirs(occ_hist_folder, exist_ok=True)
+        gif_folders.append(os.path.join(run_folder, 'GIFs'))
+        os.makedirs(gif_folders[run], exist_ok=True)
 
-    # Assign layers to the map grid
-    map.assign_layer(scene_data_path, prnt=False)
+        # Paths for data and specific plots
+        scene_data_paths.append(os.path.join(run_folder, "data"))
+        layer_plot_paths.append(os.path.join(plots_folders[run], "layers.png"))
+
+        # Subdirectories for specific plot types
+        risk_plots_folders.append(os.path.join(plots_folders[run], "risks"))
+        pointclouds_folders.append(os.path.join(plots_folders[run], "pointclouds"))
+        pointclouds_overlay_folders.append(os.path.join(plots_folders[run], "pointclouds overlay"))
+        occ_folders.append(os.path.join(plots_folders[run], "occurrence"))
+        occ_hist_folders.append(os.path.join(plots_folders[run], "occurrence histograms"))
+
+        # Ensure subdirectories exist
+        os.makedirs(risk_plots_folders[run], exist_ok=True)
+        os.makedirs(pointclouds_folders[run], exist_ok=True)
+        os.makedirs(pointclouds_overlay_folders[run], exist_ok=True)
+        os.makedirs(occ_folders[run], exist_ok=True)
+        os.makedirs(occ_hist_folders[run], exist_ok=True)
+
+    # assigns layers for both simulation, the map var that calls it does not matter
+    Map.assign_layers(scene_data_paths, maps, prnt=False)
 
     # Optionally generate and save a plot of the map layers
     if plot_layers:
-        Visualise.plot_layers(map.grid, layer_plot_path)
+        Visualise.plot_layers(maps[0].grid, layer_plot_paths[0])
+        Visualise.plot_layers(maps[1].grid, layer_plot_paths[1])
 
     # Initialize components for risk calculation, object tracking, and detection
     risk = Risk(risk_weights)
-    obj = Object(map)
-    dec = Detect(map, constant_power=constant_power)
+    objs = [Object(maps[0], constant_power=True), Object(maps[1], constant_power=False)]
+    decs = [Detect(maps[0], constant_power=True), Detect(maps[1], constant_power=False)]
 
     # Process each sample in the map
-    for i, sample in enumerate(map.samples):
+    for i, sample in enumerate(maps[0].samples):
         # Update object data if required
         if run_obj:
-            map.grid.total_obj[i], map.grid.total_obj_sev[i] = obj.update(sample=sample, x=0, y=0, sample_index=i, prnt=False)
+            maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i, prnt=False)
+            maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i, prnt=False)
 
         # Update detection data if required
         if run_detect:
-            dec.update(sample=sample, sample_index=i, prnt=False)
+            decs[0].update(sample=sample, sample_index=i, prnt=False)
+            decs[1].update(sample=sample, sample_index=i, prnt=False)
 
         # Save point cloud plots for each sample
         if plot_pointcloud:
-            Visualise.save_pointcloud_scatterplot(map, dec.lidarpoint, i, pointclouds_folder, overlay=False)
-            Visualise.save_pointcloud_scatterplot(map, dec.lidarpoint, i, pointclouds_overlay_folder, overlay=True)
+            Visualise.save_pointcloud_scatterplot(maps[0], decs[0].lidarpoint, i, pointclouds_folders[0], overlay=False)
+            Visualise.save_pointcloud_scatterplot(maps[0], decs[0].lidarpoint, i, pointclouds_overlay_folders[0], overlay=True)
+            Visualise.save_pointcloud_scatterplot(maps[1], decs[1].lidarpoint, i, pointclouds_folders[1], overlay=False)
+            Visualise.save_pointcloud_scatterplot(maps[1], decs[1].lidarpoint, i, pointclouds_overlay_folders[1], overlay=True)
 
         print(f"sample {i} complete\n")
 
+    # Retrieve global maxima for visualization scaling
+    maxs_cons = maps[0].get_global_max()
+    maxs_var = maps[1].get_global_max()
+
+    # Calculate the biggest maxima across both simulations
+    maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
+
     # Normalize risk data and calculate total risk
-    risk.normalise_and_calc_risks(map)
+    risk.normalise_and_calc_risks(maps[0], maxs)
+    risk.normalise_and_calc_risks(maps[1], maxs)
 
     # Retrieve global maxima for visualization scaling
-    maxs = map.get_global_max()
+    maxs_cons = maps[0].get_global_max()
+    maxs_var = maps[1].get_global_max()
+
+    # Calculate the biggest maxima across both simulations
+    maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
 
     # Update map grid with risk and object metrics, and generate plots for each sample
-    for i, sample in enumerate(map.samples):
-        map.update(i=i, weights=risk_weights)  # Update grid with calculated weights
+    for i, sample in enumerate(maps[0].samples):
+        maps[0].update(i=i, weights=risk_weights)  # Update grid with calculated weights
+        maps[1].update(i=i, weights=risk_weights)  # Update grid with calculated weights
 
         if plot_risk:
-            Visualise.plot_risks_maximised(map.grid, i, maxs, risk_plots_folder)
+            Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
+            Visualise.plot_risks_maximised(maps[1].grid, i, maxs, risk_plots_folders[1])
 
         if plot_occ:
-            Visualise.plot_occ(map.grid, i, occ_folder)
+            Visualise.plot_occ(maps[0].grid, i, occ_folders[0])
+            Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
 
         if plot_occ_hist:
-            Visualise.plot_occ_histogram(map, i, occ_hist_folder)
+            Visualise.plot_occ_histogram(maps[0], i, occ_hist_folders[0])
+            Visualise.plot_occ_histogram(maps[1], i, occ_hist_folders[1])
 
     # Save updated map grid with new risk values
-    map.save_grid(scene_data_path)
+    maps[0].save_grid(scene_data_paths[0])
+    maps[1].save_grid(scene_data_paths[1])
 
     # Generate summary plots for the simulation
-    Visualise.plot_avg_risks(map.grid, plots_folder)
-    Visualise.plot_avg_occ(map.grid.avg_occ, 'Average Occurrence', plots_folder)
-    Visualise.plot_total_var(map.grid.total_obj, 'Total Objects', plots_folder)
-    Visualise.plot_total_var(map.grid.total_obj_sev, 'Total Object severity', plots_folder)
-    Visualise.plot_avg_occ_histogram(map, plots_folder)
+    for run, map in enumerate(maps):
+        plots_folder = plots_folders[run]
+        Visualise.plot_avg_risks(map.grid, plots_folder)
+        Visualise.plot_avg_occ(map.grid.avg_occ, 'Average Occurrence', plots_folder)
+        Visualise.plot_total_var(map.grid.total_obj, 'Total Objects', plots_folder)
+        Visualise.plot_total_var(map.grid.total_obj_sev, 'Total Object severity', plots_folder)
+        Visualise.plot_avg_occ_histogram(map, plots_folder)
 
-    # Create GIFs for visualizing results
-    Visualise.create_gif_from_folder(risk_plots_folder, os.path.join(gif_folder, 'risks.gif'))
-    Visualise.create_gif_from_folder(pointclouds_folder, os.path.join(gif_folder, 'pointcloud.gif'))
-    Visualise.create_gif_from_folder(pointclouds_overlay_folder, os.path.join(gif_folder, 'pointcloud_layers.gif'))
-    Visualise.create_gif_from_folder(occ_folder, os.path.join(gif_folder, 'occurrence.gif'))
-    Visualise.create_gif_from_folder(occ_hist_folder, os.path.join(gif_folder, 'occurrence_hist.gif'))
+        # Create GIFs for visualizing results
+        gif_folder = gif_folders[run]
+        Visualise.create_gif_from_folder(risk_plots_folders[run], os.path.join(gif_folder, 'risks.gif'))
+        Visualise.create_gif_from_folder(pointclouds_folders[run], os.path.join(gif_folder, 'pointcloud.gif'))
+        Visualise.create_gif_from_folder(pointclouds_overlay_folders[run], os.path.join(gif_folder, 'pointcloud_layers.gif'))
+        Visualise.create_gif_from_folder(occ_folders[run], os.path.join(gif_folder, 'occurrence.gif'))
+        Visualise.create_gif_from_folder(occ_hist_folders[run], os.path.join(gif_folder, 'occurrence_hist.gif'))
 
-    # Check the size of the scene data file and warn if it exceeds 100MB
-    data_size = os.path.getsize(scene_data_path)
-    if data_size > 100000000:  # File size threshold in bytes
-        scene_data_path = scene_data_path.replace('\\', '/')  # Ensure path is in a standard format
-        try:
-            with open('.gitignore', 'r') as f:
-                gitignore_contents = f.read().splitlines()
-            if not any(scene_data_path in line for line in gitignore_contents):
-                print(f'\nDATA FILE {scene_data_path} \nIS TOO BIG FOR GITHUB: ADD IT TO THE GITIGNORE FILE')
-        except:
-            pass  # Silently handle exceptions if .gitignore is not accessible
+    for run, scene_data_path in enumerate(scene_data_paths):
+        # Check the size of the scene data file and warn if it exceeds 100MB
+        data_size = os.path.getsize(scene_data_path)
+        if data_size > 100000000:  # File size threshold in bytes
+            scene_data_path = scene_data_path.replace('\\', '/')  # Ensure path is in a standard format
+            try:
+                # Read .gitignore contents
+                with open('.gitignore', 'r') as f:
+                    gitignore_contents = f.read().splitlines()
+
+                # Add the path to .gitignore if it's not already listed
+                if not any(scene_data_path in line for line in gitignore_contents):
+                    with open('.gitignore', 'a') as f:  # Append mode
+                        f.write(f'\n{scene_data_path}\n')
+                    print(f'\nDATA FILE {scene_data_path} \nIS TOO BIG FOR GITHUB: ADDED TO THE GITIGNORE FILE')
+                else:
+                    print(f'\nDATA FILE {scene_data_path} \nIS TOO BIG FOR GITHUB: ALREADY IN THE GITIGNORE FILE')
+            except Exception as e:
+                print(f'Error handling .gitignore file: {e}')
+
 
     print('Done')  # End of the main function
 
@@ -188,8 +233,7 @@ if __name__ == '__main__':
         LIDAR_RANGE=LIDAR_RANGE, 
         RESOLUTION=RESOLUTION, 
         OCC_ACCUM=OCC_ACCUM, 
-        LIDAR_DECAY=LIDAR_DECAY, 
-        constant_power=constant_power)
+        LIDAR_DECAY=LIDAR_DECAY)
 
     run_time = time.time() - start_time
     print(f'\nRunning took {timedelta(seconds=run_time)}')
