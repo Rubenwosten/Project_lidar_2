@@ -472,43 +472,68 @@ class Visualise:
         print(f"GIF saved as {output_gif_path}")
 
     @staticmethod
-    def plot_avg_risks(grid, output_folder):
-        plt.figure(figsize=(10, 6))
-    
-        # Plot each risk
-        plt.plot(grid.avg_total_risk, label="Average Total Risk", marker='+')
-        plt.plot(grid.avg_static_risk, label="Average Static Risk", marker='o')
-        plt.plot(grid.avg_detection_risk, label="Average Detection Risk", marker='x')
-        plt.plot(grid.avg_tracking_risk, label="Average Tracking Risk", marker='s')
-        
+    def plot_avg_risks(maps, output_folder):
+        """
+        Plots the average risks for two grids on the same plot for comparison.
+
+        :param grid1: The first grid (e.g., constant power simulation)
+        :param grid2: The second grid (e.g., variable power simulation)
+        :param output_folder: Folder where the plot will be saved
+        """
+        grid1 = maps[0].grid
+        grid2 = maps[1].grid
+        plt.figure(figsize=(12, 8))
+
+        # Default matplotlib color cycle (this will be used to maintain consistent colors for the risk factors)
+        colors = plt.cm.tab10.colors  # Get the default color cycle from matplotlib (10 distinct colors)
+
+        # Plot risks for grid1 (constant power) with the default color cycle
+        plt.plot(grid1.avg_total_risk, label="Total Risk (Constant Power)", marker='+', linestyle='-', color=colors[0])
+        plt.plot(grid1.avg_static_risk, label="Static Risk (Constant Power)", marker='o', linestyle='-', color=colors[1])
+        plt.plot(grid1.avg_detection_risk, label="Detection Risk (Constant Power)", marker='x', linestyle='-', color=colors[2])
+        plt.plot(grid1.avg_tracking_risk, label="Tracking Risk (Constant Power)", marker='s', linestyle='-', color=colors[3])
+
+        # Plot risks for grid2 (variable power) with the same colors as grid1 for consistency
+        plt.plot(grid2.avg_total_risk, label="Total Risk (Variable Power)", marker='+', linestyle='--', color=colors[0])
+        plt.plot(grid2.avg_static_risk, label="Static Risk (Variable Power)", marker='o', linestyle='--', color=colors[1])
+        plt.plot(grid2.avg_detection_risk, label="Detection Risk (Variable Power)", marker='x', linestyle='--', color=colors[2])
+        plt.plot(grid2.avg_tracking_risk, label="Tracking Risk (Variable Power)", marker='s', linestyle='--', color=colors[3])
+
         # Add title and labels
-        plt.title("Average Risks Overview")
+        plt.title("Comparison of Average Risks Between Simulations")
         plt.xlabel("Index")
         plt.ylabel("Average Risk Value")
-        
-        # Add legend
+
+        # Add legend to distinguish between grids
         plt.legend()
-        
+
         # Show grid for better readability
         plt.grid(True)
-        
+
         # Save the plot
-        plot_filename = os.path.join(output_folder, "Average Risks.png")
+        plot_filename = os.path.join(output_folder, "Average Risks Comparison.png")
         plt.savefig(plot_filename)
         plt.close()
-        print(f"Average risks plot saved as '{plot_filename}'.")
+        print(f"Average risks comparison plot saved as '{plot_filename}'.")
+
 
     @staticmethod
-    def plot_total_var(var, title, output_folder):
+    def plot_total_var(var_cons, var_var, title, output_folder):
         plt.figure(figsize=(10, 6))
     
-        # Plot each risk
-        plt.plot(var)
+        # Plot constant power simulation occurrence data
+        plt.plot(var_cons, label="Constant Power", color="blue", linestyle='-', linewidth=2)
+
+        # Plot variable power simulation occurrence data
+        plt.plot(var_var, label="Variable Power", color="red", linestyle='--', linewidth=2)
         
         # Add title and labels
         plt.title(title)
         plt.xlabel("Index")
         
+        # Add legend to distinguish between the two lines
+        plt.legend(loc='upper right')
+
         # Show grid for better readability
         plt.grid(True)
         
@@ -518,25 +543,38 @@ class Visualise:
         plt.close()
         print(f"{title} plot saved as '{plot_filename}'.")
 
-    @staticmethod
-    def plot_avg_occ(occ, title, output_folder):
+
+    @staticmethod 
+    def plot_avg_occ(maps, output_folder):
+        occ_constant = maps[0].grid.avg_occ
+        occ_variable = maps[1].grid.avg_occ
+
         plt.figure(figsize=(10, 6))
-    
-        # Plot each risk
-        plt.plot(occ)
+
+        # Plot variable power simulation occurrence data
+        plt.plot(occ_variable, label="Variable Power", color="blue", linestyle='-', linewidth=2)
         
+        # Plot constant power simulation occurrence data
+        plt.plot(occ_constant, label="Constant Power", color="red", linestyle='--', linewidth=2)
+
         # Add title and labels
-        plt.title(title)
+        plt.title('Average Occurrence')
         plt.xlabel("Index")
-        plt.ylim(0,1)
+        plt.ylim(0, 1)
+
+        # Add legend to distinguish between the two lines
+        plt.legend(loc='upper right')
+
         # Show grid for better readability
         plt.grid(True)
-        
+
         # Save the plot
-        plot_filename = os.path.join(output_folder, f"{title}.png")
+        plot_filename = os.path.join(output_folder, "Average Occurrence.png")
         plt.savefig(plot_filename)
         plt.close()
-        print(f"{title} plot saved as '{plot_filename}'.")
+
+        print(f"Average Occurrence plot saved as '{plot_filename}'.")
+
 
     @staticmethod
     def show_lidarpointcloud_nusc(map, i):
@@ -594,38 +632,58 @@ class Visualise:
         print(f"Occurrence histogram it {timestep} saved as '{plot_filename}'.")
 
     @staticmethod
-    def plot_avg_occ_histogram(map, output_folder):
+    def plot_avg_occ_histogram(maps, output_folder):
         """
-        Generate a histogram plot of total_occ_ranges for a specific timestep.
-
-        :param ranges: List or array of range values (e.g., np.linspace(RANGE/10, RANGE, 10)).
-        :param total_occ_ranges: 2D list of total occupancy values per range and timestep.
-        :param timestep: The timestep (index) to plot the histogram for.
+        Generate a histogram plot of total_occ_ranges for the given maps (constant and variable power).
+        
+        :param maps: List of map objects. 
+                     maps[0] should be constant power, maps[1] should be variable power.
+        :param output_folder: Folder to save the generated plot.
         """
-        ranges = map.grid.ranges
-        avg_occ_ranges = map.grid.avg_occ_ranges
+        # Extract ranges and avg_occ_ranges from each map (constant power first, variable power second)
+        map_constant = maps[0]
+        map_variable = maps[1]
 
-        ranges = np.append(0, ranges)
-        # Generate range labels
-        range_labels = [f"{ranges[i]:.1f}-{ranges[i+1]:.1f}m" for i in range(len(ranges)-1)]
+        ranges_constant = np.append(0, map_constant.grid.ranges)
+        avg_occ_ranges_constant = map_constant.grid.avg_occ_ranges
+        range_labels_constant = [f"{ranges_constant[i]:.1f}-{ranges_constant[i+1]:.1f}m" for i in range(len(ranges_constant)-1)]
+        avg_occ_values_constant = np.mean(avg_occ_ranges_constant, axis=0)
 
-        # Compute the average occurrence across all timesteps
-        avg_occ_values = np.mean(avg_occ_ranges, axis=0)
+        ranges_variable = np.append(0, map_variable.grid.ranges)
+        avg_occ_ranges_variable = map_variable.grid.avg_occ_ranges
+        range_labels_variable = [f"{ranges_variable[i]:.1f}-{ranges_variable[i+1]:.1f}m" for i in range(len(ranges_variable)-1)]
+        avg_occ_values_variable = np.mean(avg_occ_ranges_variable, axis=0)
 
-        # Plot the histogram
+        # Create a plot
         plt.figure(figsize=(10, 6))
-        plt.bar(range_labels, avg_occ_values, color='blue', alpha=0.7)
-        plt.ylim(0,1)
+
+        # Set the width for the bars to prevent overlap
+        bar_width = 0.35  # You can adjust this to control the distance between the bars
+
+        # Calculate the positions for the bars (offset the variable power bars)
+        x_positions_constant = np.arange(len(range_labels_constant))
+        x_positions_variable = x_positions_constant + bar_width  # Offset the variable power bars
+
+        # Plot for constant power map (first map)
+        plt.bar(x_positions_constant, avg_occ_values_constant, color='blue', alpha=0.7, width=bar_width, label="Constant Power")
+
+        # Plot for variable power map (second map)
+        plt.bar(x_positions_variable, avg_occ_values_variable, color='red', alpha=0.7, width=bar_width, label="Variable Power")
+
+        # Add labels and title
+        plt.ylim(0, 1)
         plt.xlabel("Range (meters)")
         plt.ylabel("Average Occurrence per Cell")
         plt.title(f"Average Occurrence per Cell Histogram")
-        plt.xticks(rotation=45)
+        plt.xticks(x_positions_constant + bar_width / 2, range_labels_constant, rotation=45)  # Center the labels between the bars
         plt.tight_layout()
-        
+
+        # Add legend to distinguish between the two simulations
+        plt.legend()
+
         # Save the plot
         plot_filename = os.path.join(output_folder, f"average_total_occ_hist.png")
         plt.savefig(plot_filename)
         plt.close()
+
         print(f"Average Total Occurrence histogram saved as '{plot_filename}'.")
-
-

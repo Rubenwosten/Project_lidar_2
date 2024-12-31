@@ -48,12 +48,12 @@ scene_id = 1
 RESOLUTION = 2 # meter
 run_detect = True
 run_obj = False
-plot_layers = True
-plot_pointcloud = True
+plot_layers = False
+plot_pointcloud = False
 show_pointcloud = False
-plot_occ_hist = True
-plot_occ = True
-plot_risk = True
+plot_occ_hist = False
+plot_occ = False
+plot_risk = False
 
 def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # Entry point for the main simulation function
@@ -68,6 +68,10 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     run_folder_cons = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Constant Power')
     run_folder_var = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Variable Power')
     run_folders = [run_folder_cons, run_folder_var]
+
+    # create a folder where all the comparison plots are made
+    comparison_folder = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}")
+    os.makedirs(comparison_folder, exist_ok=True)
 
     plots_folders = []
     gif_folders = []
@@ -183,15 +187,14 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     maps[0].save_grid(scene_data_paths[0])
     maps[1].save_grid(scene_data_paths[1])
 
+    Visualise.plot_avg_risks(maps, comparison_folder)
+    Visualise.plot_avg_occ(maps, comparison_folder)
+    Visualise.plot_total_var(maps[0].grid.total_obj, maps[1].grid.total_obj, 'Total Objects', comparison_folder)
+    Visualise.plot_total_var(maps[0].grid.total_obj_sev, maps[1].grid.total_obj, 'Total Object severity', comparison_folder)
+    Visualise.plot_avg_occ_histogram(maps, comparison_folder)
+
     # Generate summary plots for the simulation
     for run, map in enumerate(maps):
-        plots_folder = plots_folders[run]
-        Visualise.plot_avg_risks(map.grid, plots_folder)
-        Visualise.plot_avg_occ(map.grid.avg_occ, 'Average Occurrence', plots_folder)
-        Visualise.plot_total_var(map.grid.total_obj, 'Total Objects', plots_folder)
-        Visualise.plot_total_var(map.grid.total_obj_sev, 'Total Object severity', plots_folder)
-        Visualise.plot_avg_occ_histogram(map, plots_folder)
-
         # Create GIFs for visualizing results
         gif_folder = gif_folders[run]
         Visualise.create_gif_from_folder(risk_plots_folders[run], os.path.join(gif_folder, 'risks.gif'))
@@ -237,3 +240,4 @@ if __name__ == '__main__':
 
     run_time = time.time() - start_time
     print(f'\nRunning took {timedelta(seconds=run_time)}')
+
