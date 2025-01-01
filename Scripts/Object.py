@@ -30,7 +30,7 @@ lengte = 24
 
 
 class Object:
-    def __init__(self, map):
+    def __init__(self, map, constant_power):
         #data object
         self._sample = None
         self._sampleindex = None
@@ -43,6 +43,7 @@ class Object:
         self.width = self.map.grid.width
         self.length = self.map.grid.length
 
+        self.constant_power = constant_power
         #nusc function
         self.reso= map.grid.res
         self.nusc = map.nusc
