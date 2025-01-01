@@ -82,6 +82,7 @@ class Object:
                 rot = np.arctan2((2*(info['rotation'][0]*info['rotation'][3]+info['rotation'][1]*info['rotation'][2])),(1-2*(info['rotation'][3]**2+info['rotation'][2]**2)))
                 voor = self.voorspelling(info['instance_token'])
                 sev = severity.factor(info['category_name'], info['rotation'], info['translation'], self.nusc.ego_pose[i]['rotation'], self._x, self._y, detected=True)
+                #print(f'sev = {sev}')
                 total_sev += sev
                 gespl , prob = self.route_splitser(num_of_modes,lengte, voor)
                 j=0
@@ -139,6 +140,7 @@ class Object:
                             k+=self.reso
                         else:
                             self.map.grid.get_cell(int((j-self.xmin)/self.reso),int((k-self.ymin)/self.reso)).track_risk[self._sampleindex]+=prob[i] * sev
+                            #print(f'prob[i] * sev = {prob[i] * sev}')
                             k+=self.reso
                     j+=self.reso
     

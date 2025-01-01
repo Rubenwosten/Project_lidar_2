@@ -130,7 +130,7 @@ class Visualise:
         Visualise.show_occ(grid, i)
         plt.savefig(occ_plot_filename)
         plt.close() 
-        print(f"Risk plot for iteration {i} saved as '{occ_plot_filename}'.")
+        print(f"Occurrence plot for iteration {i} saved as '{occ_plot_filename}'.")
 
     @staticmethod
     def show_risks(grid, index):
@@ -390,7 +390,30 @@ class Visualise:
         print(f"Point cloud scatter plot for iteration {iteration} saved as '{plot_filename}'.")
 
     @staticmethod
-    def show_lidar_pointcloud(map, pointcloud, i):
+    def show_lidar_pointcloud_2d(pointcloud, i):
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+
+        # Extract X, Y, Z coordinates from the point cloud
+        x_coords = [point[0] for point in pointcloud]
+        y_coords = [point[1] for point in pointcloud]
+
+        # Scatter plot of the 3D point cloud
+        ax.scatter(x_coords, y_coords, c='black', s=1, marker='.')
+
+        # Setting the labels and title
+        ax.set_title(f"3D Point Cloud Iteration {i}")
+        ax.set_xlabel("X (Global Coordinates)")
+        ax.set_ylabel("Y (Global Coordinates)")
+
+        lim = 10
+        ax.set_xlim(-lim,lim)
+        ax.set_ylim(-lim,lim)
+        plt.show()
+
+
+    @staticmethod
+    def show_lidar_pointcloud_3d(pointcloud, i):
 
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection='3d')
@@ -403,31 +426,17 @@ class Visualise:
         # Scatter plot of the 3D point cloud
         ax.scatter(x_coords, y_coords, z_coords, c='black', s=1, marker='.')
 
-        '''
-        # Plot the red box at the ego position
-        ego_pos = map.ego_positions[i]
-        ego_x, ego_y, ego_z = ego_pos
-
-        ego_box_size = 0.5  # Define the size of the red box (adjust as needed) in meters
-        red_box = Rectangle(
-            (ego_x - ego_box_size / 2, ego_y - ego_box_size / 2),  # Bottom-left corner
-            ego_box_size, ego_box_size,  # Width and height
-            linewidth=2, edgecolor='red', facecolor='none'
-        )
-        ax.add_patch(red_box)  # Add the red box to the plot
-        '''
-
         # Setting the labels and title
         ax.set_title(f"3D Point Cloud Iteration {i}")
         ax.set_xlabel("X (Global Coordinates)")
         ax.set_ylabel("Y (Global Coordinates)")
         ax.set_zlabel("Z (Global Coordinates)")
 
-        lim = 50
+        lim = 10
         ax.set_xlim(-lim,lim)
         ax.set_ylim(-lim,lim)
         plt.show()
-
+    
     @staticmethod
     def create_gif_from_folder(image_folder, output_gif_path, duration=500):
         """
@@ -463,19 +472,19 @@ class Visualise:
         print(f"GIF saved as {output_gif_path}")
 
     @staticmethod
-    def plot_total_risks(grid, output_folder):
+    def plot_avg_risks(grid, output_folder):
         plt.figure(figsize=(10, 6))
     
         # Plot each risk
-        plt.plot(grid.total_total_risk, label="Total Total Risk", marker='+')
-        plt.plot(grid.total_static_risk, label="Total Static Risk", marker='o')
-        plt.plot(grid.total_detection_risk, label="Total Detection Risk", marker='x')
-        plt.plot(grid.total_tracking_risk, label="Total Tracking Risk", marker='s')
+        plt.plot(grid.avg_total_risk, label="Average Total Risk", marker='+')
+        plt.plot(grid.avg_static_risk, label="Average Static Risk", marker='o')
+        plt.plot(grid.avg_detection_risk, label="Average Detection Risk", marker='x')
+        plt.plot(grid.avg_tracking_risk, label="Average Tracking Risk", marker='s')
         
         # Add title and labels
-        plt.title("Total Risks Overview")
+        plt.title("Average Risks Overview")
         plt.xlabel("Index")
-        plt.ylabel("Risk Value")
+        plt.ylabel("Average Risk Value")
         
         # Add legend
         plt.legend()
@@ -484,10 +493,10 @@ class Visualise:
         plt.grid(True)
         
         # Save the plot
-        plot_filename = os.path.join(output_folder, "total risks.png")
+        plot_filename = os.path.join(output_folder, "Average Risks.png")
         plt.savefig(plot_filename)
         plt.close()
-        print(f"total risks plot saved as '{plot_filename}'.")
+        print(f"Average risks plot saved as '{plot_filename}'.")
 
     @staticmethod
     def plot_total_var(var, title, output_folder):
@@ -508,3 +517,95 @@ class Visualise:
         plt.savefig(plot_filename)
         plt.close()
         print(f"{title} plot saved as '{plot_filename}'.")
+
+    @staticmethod
+    def show_lidarpointcloud_nusc(map, i):
+        
+        first = map.scene['first_sample_token']
+        last = map.scene['last_sample_token']
+
+        samples = []
+        sample = first
+        while sample != last:
+            samples.append(sample)
+            info = map.nusc.get('sample', sample)
+            sample = info['next']
+        samples.append(last)
+
+        my_sample = map.nusc.get('sample', samples[i])
+        map.nusc.render_sample_data(my_sample['data']['LIDAR_TOP'], nsweeps=1, underlay_map=True)
+
+    @staticmethod
+    def plot_occ_histogram(map, timestep, output_folder):
+        """
+        Generate a histogram plot of total_occ_ranges for a specific timestep.
+
+        :param ranges: List or array of range values (e.g., np.linspace(RANGE/10, RANGE, 10)).
+        :param total_occ_ranges: 2D list of total occupancy values per range and timestep.
+        :param timestep: The timestep (index) to plot the histogram for.
+        """
+        ranges = map.grid.ranges
+        total_occ_ranges = map.grid.avg_occ_ranges
+        # Validate timestep
+        if not (0 <= timestep < len(total_occ_ranges)):
+            raise ValueError(f"Timestep {timestep} is out of bounds. Must be between 0 and {len(total_occ_ranges) - 1}.")
+
+        ranges = np.append(0, ranges)
+        # Generate range labels
+        range_labels = [f"{ranges[i]:.1f}-{ranges[i+1]:.1f}m" for i in range(len(ranges)-1)]
+
+        # Data for the histogram
+        occ_values = total_occ_ranges[timestep]
+
+        # Plot the histogram
+        plt.figure(figsize=(10, 6))
+        plt.bar(range_labels, occ_values, color='blue', alpha=0.7)
+        plt.ylim(0,1)
+        plt.xlabel("Range (meters)")
+        plt.ylabel("Average Occurrence per Cell")
+        plt.title(f"Average Occurrence per Cell Histogram for Timestep {timestep}")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        
+        # Save the plot
+        plot_filename = os.path.join(output_folder, f"occ_hist_it_{timestep}.png")
+        plt.savefig(plot_filename)
+        plt.close()
+        print(f"Occurrence histogram it {timestep} saved as '{plot_filename}'.")
+
+    @staticmethod
+    def plot_avg_occ_histogram(map, output_folder):
+        """
+        Generate a histogram plot of total_occ_ranges for a specific timestep.
+
+        :param ranges: List or array of range values (e.g., np.linspace(RANGE/10, RANGE, 10)).
+        :param total_occ_ranges: 2D list of total occupancy values per range and timestep.
+        :param timestep: The timestep (index) to plot the histogram for.
+        """
+        ranges = map.grid.ranges
+        avg_occ_ranges = map.grid.avg_occ_ranges
+
+        ranges = np.append(0, ranges)
+        # Generate range labels
+        range_labels = [f"{ranges[i]:.1f}-{ranges[i+1]:.1f}m" for i in range(len(ranges)-1)]
+
+        # Compute the average occurrence across all timesteps
+        avg_occ_values = np.mean(avg_occ_ranges, axis=0)
+
+        # Plot the histogram
+        plt.figure(figsize=(10, 6))
+        plt.bar(range_labels, avg_occ_values, color='blue', alpha=0.7)
+        plt.ylim(0,1)
+        plt.xlabel("Range (meters)")
+        plt.ylabel("Average Occurrence per Cell")
+        plt.title(f"Average Occurrence per Cell Histogram")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        
+        # Save the plot
+        plot_filename = os.path.join(output_folder, f"average_total_occ_hist.png")
+        plt.savefig(plot_filename)
+        plt.close()
+        print(f"Average Total Occurrence histogram saved as '{plot_filename}'.")
+
+

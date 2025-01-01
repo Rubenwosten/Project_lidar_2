@@ -47,13 +47,13 @@ class Map:
             print('patch = {}'.format(self.patch))
 
         # initialise a cell grid 
-        self.grid = Grid(self.patch, RES, len(self.samples))
+        self.grid = Grid(self.patch, RES, len(self.samples), RANGE)
 
         # get all records within your map
         self.rec = self.get_records_in_patch(self.patch)
 
     def update(self, sample, i, weights):
-        self.grid.calc_total_vars(range=self.range, ego=self.ego_positions[i], i=i, weights=weights)
+        self.grid.calc_total_vars(rang=self.range, ego=self.ego_positions[i], i=i, weights=weights)
         # Add a visualise total plots statement?
 
     def get_scene(self, index):
@@ -157,14 +157,18 @@ class Map:
     
     # Save the grid object
     def save_grid(self, filename):
+        print('\nSAVING MAP: DO NOT KILL TERMINAL\n')
         with open(filename, 'wb') as f:
             pickle.dump(self.grid.to_dict(), f)  # Save the grid's dictionary representation
+        print('Saved map: can now kill terminal')
 
     # Load the grid object
     def load_grid(self, filename):
+        print('\nLOADING MAP: DO NOT KILL TERMINAL\n')
         with open(filename, 'rb') as f:
             grid_dict = pickle.load(f)  # Load the dictionary from the file
             self.grid = Grid.from_dict(grid_dict)
             return self.grid # Reconstruct the grid from the dictionary
+        print('loaded map: can now kill terminal')
 
     

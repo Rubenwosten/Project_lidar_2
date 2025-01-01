@@ -4,7 +4,7 @@ import os
 from Visualise import Visualise
 
 class Detect:
-    def __init__(self, map):
+    def __init__(self, map, constant_power):
         self._sample=None
         self._x = None
         self._y = None
@@ -19,9 +19,11 @@ class Detect:
         self.ego = self.map.ego_positions
         self.reso = map.grid.res
         self.lidarpoint = []
+        self.lidarpoint2d = []
         self.lidarpointV2 = []
         self.width = self.map.grid.width
         self.length = self.map.grid.length
+        self.constant_power = constant_power
 
     @property 
     def sample(self): #getter om sample aftelezen
@@ -39,11 +41,13 @@ class Detect:
         
         if self._sample != self.oud: # alleen runnen als sample veranderd
             self.lidarpoint = []
+            self.lidarpoint2d = []
             self.lidarpointV2 = []
             self.file_get()
             #print ("file complete")
             info = self.nusc.get('sample', self._sample)
             info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
+<<<<<<< HEAD
             
             sen_info = self.nusc.get('calibrated_sensor', info['calibrated_sensor_token'])
             
@@ -52,6 +56,16 @@ class Detect:
             rot_2 = np.arctan2((2*(sen_info['rotation'][0]*sen_info['rotation'][3]+sen_info['rotation'][1]*sen_info['rotation'][2])),(1-2*(sen_info['rotation'][3]**2+sen_info['rotation'][2]**2)))
             rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) 
             
+=======
+            # print (info)
+            sen_info = self.nusc.get('calibrated_sensor', info['calibrated_sensor_token'])
+            # print(sen_info)
+            info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
+            # print (info_2)
+            rot_2 = np.arctan2((2*(sen_info['rotation'][0]*sen_info['rotation'][3]+sen_info['rotation'][1]*sen_info['rotation'][2])),(1-2*(sen_info['rotation'][3]**2+sen_info['rotation'][2]**2)))
+            rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) 
+            # print (rot)
+>>>>>>> 4c90a7f1e28d3d78d17aaa3f91a12884526daaa5
             rot_matrix = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
             rot_matrix_2 = np.array([[np.cos(rot_2), -np.sin(rot_2)], [np.sin(rot_2), np.cos(rot_2)]])
             xy_lidar = np.array([sen_info['translation'][0], sen_info['translation'][1]]).reshape(-1, 1) 
@@ -90,6 +104,7 @@ class Detect:
             while number != b"":
                 quo, rem = divmod(som,5) #omdat je alleen x en y wilt gebruiken en niet de andere dingen kijk je naar het residu van het item waar die op zit.
                 if rem == 0: # als het residu = 0 heb je het x coordinaat en res = 1 is het y-coordinaat
+<<<<<<< HEAD
                     
                     x = np.frombuffer(number, dtype=np.float32)[0]
                     
@@ -101,16 +116,41 @@ class Detect:
                     z = np.frombuffer(number, dtype=np.float32)[0]
                     self.lidarpointV2.append((x, y, z))
 
+=======
+                    x = np.frombuffer(number, dtype=np.float32)[0]
+                    number = f.read(4) #leest de volgende bit    
+                elif rem ==1:
+                    y = np.frombuffer(number, dtype=np.float32)[0]
+                    number = f.read(4) #leest de volgende bit  
+                elif rem == 2:
+                    z = np.frombuffer(number, dtype=np.float32)[0]
+                    
+>>>>>>> 4c90a7f1e28d3d78d17aaa3f91a12884526daaa5
                     xy = np.array([x, y]).reshape(-1, 1)
+
+                    self.lidarpoint2d.append((x, y))
+                    self.lidarpointV2.append((x, y, z))
+
                     xy_rotated = np.dot(rot_2, xy)
                     xy_rot_2 = xy_rotated+xy_l
                     xy_rot = np.dot(rot_matrix, xy_rot_2)
+
+                    
                     x_frame = (xy_rot[0]+self._x-self.patchxmin)/self.reso
                     y_frame = (xy_rot[1]+self._y-self.patchymin)/self.reso
                     self.lidarpoint.append((x_frame,y_frame))
+<<<<<<< HEAD
 
                     x_frame = int(x_frame)
                     y_frame = int(y_frame)
+=======
+                    # print("rot_2 shape:", rot_2.shape)
+                    # print("xy shape:", xy.shape)
+                    # print("rot_matrix shape:", rot_matrix.shape)
+                    # print (x_frame)
+                    x_frame = int(np.round(x_frame))  # Rounds before conversion.
+                    y_frame = int(np.round(y_frame))
+>>>>>>> 4c90a7f1e28d3d78d17aaa3f91a12884526daaa5
                     lidar_punt += 1
 
                     x_global = x + self._x
@@ -145,25 +185,26 @@ class Detect:
         for row in self.map.grid.grid:
             # Iterate through each cell in the current row
             for cell in row:
-                # Retrieve the lidar count for the current sample index
-                lidar_punten = cell.lidar_aantal[self._sampleindex]
-                
-                # Determine the base occurrence (`occ`) value to update
-                if self._sampleindex == 0:
-                    # For the first sample index, use the current occurrence
-                    occ = cell.occ[self._sampleindex]
-                else:
-                    # For subsequent indices, use the occurrence from the previous index
-                    occ = cell.occ[self._sampleindex - 1]
-                
-                # Add the standard occurrence accumulation
-                occ += self.map.OCC_ACCUM
-                
-                # Decay the occurrence based on lidar points and clamp it between 0 and 1
-                occ = max(0, min(occ - self.map.LIDAR_DECAY * lidar_punten, 1))
-                
-                # Update the occurrence value for the current sample index in the cell
-                cell.occ[self._sampleindex] = occ
+                if cell.layer != 'empty':
+                    # Retrieve the lidar count for the current sample index
+                    lidar_punten = cell.lidar_aantal[self._sampleindex]
+                    
+                    # Determine the base occurrence (`occ`) value to update
+                    if self._sampleindex == 0:
+                        # For the first sample index, use the current occurrence
+                        occ = cell.occ[self._sampleindex]
+                    else:
+                        # For subsequent indices, use the occurrence from the previous index
+                        occ = cell.occ[self._sampleindex - 1]
+                    
+                    # Add the standard occurrence accumulation
+                    occ += self.map.OCC_ACCUM
+                    
+                    # Decay the occurrence based on lidar points and clamp it between 0 and 1
+                    occ = max(0, min(occ - self.map.LIDAR_DECAY * lidar_punten, 1))
+                    
+                    # Update the occurrence value for the current sample index in the cell
+                    cell.occ[self._sampleindex] = occ
 
     def update_risk(self):
         for row in self.map.grid.grid:

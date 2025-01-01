@@ -19,6 +19,12 @@ from Power import power
 from Subsample import subsample
 from Object_filter import object_filter
 
+import warnings
+from shapely.errors import ShapelyDeprecationWarning
+
+# Suppress ShapelyDeprecationWarning
+warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)
+
 from nuscenes.nuscenes import NuScenes
 from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion import arcline_path_utils
@@ -38,24 +44,33 @@ amount_cones = 8
 max_power = 100
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
-LIDAR_DECAY = 0.3 # amount of occurrence that goes down per lidar point
+LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
 
-risk_weights = (0.5, 2, 10)# (0.5, 2, 10) # static, detection, tracking
+risk_weights = (1, 1, 1) # (0.5, 2, 10) # static, detection, tracking
 
 scene_id = 4
 RESOLUTION = 0.5 # meter
 run_detect = True
 run_obj = False
-visualise_pointcloud = True
+plot_layers = False
+plot_pointcloud = False
+show_pointcloud = False
+plot_occ_hist = False
 
-def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
+constant_power = True
+
+def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY, constant_power):
 
     print("Starting main function...")
     map = Map(dataroot, map_name, map_width, map_height, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY)
 
+    if constant_power:
+        sim_type = 'Constant Power'
+    else:
+        sim_type = 'Variable Power'
     # Create a folder to save the run and plots if it doesn't already exist
     # Create the Run/Boston/scene 1 folder structure
-    run_folder = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}")
+    run_folder = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", sim_type)
     os.makedirs(run_folder, exist_ok=True)
 
     plots_folder = os.path.join(run_folder,'plots')
@@ -71,20 +86,23 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     pointclouds_folder = os.path.join(plots_folder, "pointclouds")
     pointclouds_overlay_folder = os.path.join(plots_folder, "pointclouds overlay")
     occ_folder = os.path.join(plots_folder, "occurrence")
+    occ_hist_folder = os.path.join(plots_folder, "occurrence histograms")
     
     # Create subfolders
     os.makedirs(risk_plots_folder, exist_ok=True)
     os.makedirs(pointclouds_folder, exist_ok=True)
     os.makedirs(pointclouds_overlay_folder, exist_ok=True)
     os.makedirs(occ_folder, exist_ok=True)
+    os.makedirs(occ_hist_folder, exist_ok=True)
 
     # Assign layers to the grid in parallel
     map.assign_layer(scene_data_path, prnt=False)
 
     map.save_grid(scene_data_path)
-
+    
     # Generate and save the layer plot
-    Visualise.plot_layers(map.grid, layer_plot_path)
+    if plot_layers:
+        Visualise.plot_layers(map.grid, layer_plot_path)
 
     # Initialize risk calculation
     risk = Risk()
@@ -103,16 +121,20 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         #TODO add a check if it has already been set
         if run_detect:
             dec.update(sample=sample, sample_index=i, prnt=False)
-        # if i == 10:
-            # Visualise.show_lidar_pointcloud(map, dec.lidarpointV2, i)
+        
         # Save individual pointcloud plots
-        if visualise_pointcloud:
+        if plot_pointcloud:
             Visualise.save_pointcloud_scatterplot(map, dec.lidarpoint, i, pointclouds_folder, overlay=False)
             Visualise.save_pointcloud_scatterplot(map, dec.lidarpoint, i, pointclouds_overlay_folder, overlay=True)
+        
+        print(f"sample {i} complete\n")
 
-        # Calculate risks
-        risk.CalcRisk(map, risk_weights, i)
+    # normalise the risk elements between 0 and 1
+    # calculate the total risk based on the weights
+    normalise_and_calc_risks(map, risk_weights)
 
+    maxs = get_global_max(map=map)
+    for i, sample in enumerate(map.samples):
         # update total variables
         map.update(sample=sample,i=i, weights=risk_weights)
 
@@ -130,33 +152,33 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         print(filt.count)
         
         # Save individual risk plots
-        # Visualise.plot_risks(map.grid, i, risk_plots_folder)
-        print(f"sample {i} complete\n")
-    
+        Visualise.plot_risks_maximised(map.grid, i, maxs, risk_plots_folder)
+        Visualise.plot_occ(map.grid, i, occ_folder)   
+        
+        # plot occurrence range histograms
+        if plot_occ_hist:
+            Visualise.plot_occ_histogram(map, i, occ_hist_folder)
+
     # save the grid with the new risk values 
     map.save_grid(scene_data_path)
 
-    Visualise.plot_total_risks(map.grid, plots_folder)
-    Visualise.plot_total_var(map.grid.total_occ, 'Total Occurrence', plots_folder)
+    Visualise.plot_avg_risks(map.grid, plots_folder)
+    Visualise.plot_total_var(map.grid.avg_occ, 'Average Occurrence', plots_folder)
     Visualise.plot_total_var(map.grid.total_obj, 'Total Objects', plots_folder)
     Visualise.plot_total_var(map.grid.total_obj_sev, 'Total Object severity', plots_folder)
-        
-    # Plot all risk plots with global maximum values
-    maxs = get_global_max(map=map)
-    for i, sample in enumerate(map.samples):
-        Visualise.plot_risks_maximised(map.grid, i, maxs, risk_plots_folder)
-        Visualise.plot_occ(map.grid, i, occ_folder)    
+    Visualise.plot_avg_occ_histogram(map, plots_folder)
 
     # create gifs of all results
     Visualise.create_gif_from_folder(risk_plots_folder, os.path.join(gif_folder,'risks.gif'))
     Visualise.create_gif_from_folder(pointclouds_folder, os.path.join(gif_folder,'pointcloud.gif'))
     Visualise.create_gif_from_folder(pointclouds_overlay_folder, os.path.join(gif_folder,'pointcloud_layers.gif'))
     Visualise.create_gif_from_folder(occ_folder, os.path.join(gif_folder,'occurrence.gif'))
+    Visualise.create_gif_from_folder(occ_hist_folder, os.path.join(gif_folder,'occurrence_hist.gif'))
 
     # check scene data size, if more than 100MB give a warning message to add it to the gitignore
     data_size = os.path.getsize(scene_data_path)
     if (data_size > 100000000):
-        print(f'DATA FILE {scene_data_path} \nIS TOO BIG FOR GITHUB: ADD IT TO THE GITIGNORE FILE')
+        print(f'\nDATA FILE {scene_data_path} \nIS TOO BIG FOR GITHUB: ADD IT TO THE GITIGNORE FILE')
     print('Done')
 
 def get_global_max(map):
@@ -166,11 +188,38 @@ def get_global_max(map):
     max_track = max(np.max(np.array(matrix)) for matrix in [map.grid.get_track_risk_matrix(i) for i in range(map.grid.scene_length)])
     return (max_total, max_static, max_detect, max_track)
 
+def normalise_and_calc_risks(map, weights):
+    maxs = get_global_max(map)
+    max_total, max_static, max_detect, max_track = [value if value > 0 else 1 for value in maxs]
+    w_s, w_d, w_t = weights
+
+
+    print(f'maxs before norm = {maxs}')
+    print(f'max_track before norm = {max_track}')
+    for row in map.grid.grid:
+        for cell in row:
+            cell.static_risk = cell.static_risk/max_static
+            cell.detect_risk = [detect_risk/max_detect for detect_risk in cell.detect_risk]
+            cell.track_risk = [track_risk/max_track for track_risk in cell.track_risk]
+            for i in range(len(cell.detect_risk)):
+                cell.total_risk[i] = w_s * cell.static_risk + w_d * cell.detect_risk[i] + w_t * cell.track_risk[i]
+    
+    maxs = get_global_max(map)
+    max_total, max_static, max_detect, max_track = [value if value > 0 else 1 for value in maxs]
+    print(f'maxs = after norm {maxs}')
+    print(f'max_track after norm = {max_track}')
+
 # This ensures that the code is only executed when the script is run directly
 if __name__ == '__main__':
     print("Running as main module...")  # Debugging line
     start_time = time.time()
-    main(map_short=map_short, id=scene_id, LIDAR_RANGE=LIDAR_RANGE, RESOLUTION=RESOLUTION, OCC_ACCUM=OCC_ACCUM, LIDAR_DECAY=LIDAR_DECAY)
+    main(map_short=map_short, 
+        id=scene_id, 
+        LIDAR_RANGE=LIDAR_RANGE, 
+        RESOLUTION=RESOLUTION, 
+        OCC_ACCUM=OCC_ACCUM, 
+        LIDAR_DECAY=LIDAR_DECAY, 
+        constant_power=constant_power)
 
     run_time = time.time() - start_time
     print(f'\nRunning took {timedelta(seconds=run_time)}')
