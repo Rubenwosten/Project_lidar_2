@@ -40,6 +40,7 @@ class Object:
         self.map = map
         self.xmin =map.patch[0]
         self.ymin =map.patch[2]
+        self.anns = None
         self.width = self.map.grid.width
         self.length = self.map.grid.length
 
@@ -64,7 +65,7 @@ class Object:
     #def sample(self, values):
         
 
-    def update(self, sample, x, y, sample_index, prnt=False):
+    def update(self, sample, x, y, sample_index, object_list_new, prnt=False):
         # add a check whether the tracking risk has already been set
         self._sample = sample
         self._x = x
@@ -72,8 +73,10 @@ class Object:
         self._sampleindex = sample_index
         total_sev = 0
         if self._sample != self.oud:
-            info = self.nusc.get('sample', self._sample)
-            anns = info['anns']
+            if self.constant_power == True:
+                info = self.nusc.get('sample', self._sample)
+                anns = info['anns']
+            else: anns = object_list_new
             if prnt:
                 print(f'amount of object within the sample = {len(anns)}')
             

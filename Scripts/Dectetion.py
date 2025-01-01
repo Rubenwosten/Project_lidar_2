@@ -33,7 +33,7 @@ class Detect:
     #def sample(self, values): #values is een tuple van sample ego_x en ego_y
         
 
-    def update(self, sample, sample_index, prnt=False):
+    def update(self, sample, sample_index, lidar_new, prnt=False):
         self._sample = sample
         self._sampleindex = sample_index
         self._x = self.ego[self._sampleindex][0]
@@ -43,38 +43,32 @@ class Detect:
             self.lidarpoint = []
             self.lidarpoint2d = []
             self.lidarpointV2 = []
-            self.file_get()
-            #print ("file complete")
-            info = self.nusc.get('sample', self._sample)
-            info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
-<<<<<<< HEAD
-            
-            sen_info = self.nusc.get('calibrated_sensor', info['calibrated_sensor_token'])
-            
-            info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
-            
-            rot_2 = np.arctan2((2*(sen_info['rotation'][0]*sen_info['rotation'][3]+sen_info['rotation'][1]*sen_info['rotation'][2])),(1-2*(sen_info['rotation'][3]**2+sen_info['rotation'][2]**2)))
-            rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) 
-            
-=======
-            # print (info)
-            sen_info = self.nusc.get('calibrated_sensor', info['calibrated_sensor_token'])
-            # print(sen_info)
-            info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
-            # print (info_2)
-            rot_2 = np.arctan2((2*(sen_info['rotation'][0]*sen_info['rotation'][3]+sen_info['rotation'][1]*sen_info['rotation'][2])),(1-2*(sen_info['rotation'][3]**2+sen_info['rotation'][2]**2)))
-            rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) 
-            # print (rot)
->>>>>>> 4c90a7f1e28d3d78d17aaa3f91a12884526daaa5
-            rot_matrix = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
-            rot_matrix_2 = np.array([[np.cos(rot_2), -np.sin(rot_2)], [np.sin(rot_2), np.cos(rot_2)]])
-            xy_lidar = np.array([sen_info['translation'][0], sen_info['translation'][1]]).reshape(-1, 1) 
-            self.lidar_coor(rot_matrix, rot_matrix_2, xy_lidar )
-            #print("lidar complete")
-            if prnt:
-                print ("file complete")
-            if prnt:
-                print("lidar complete")
+            if self.constant_power==True:
+                self.file_get()
+                #print ("file complete")
+                info = self.nusc.get('sample', self._sample)
+                info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
+                
+                sen_info = self.nusc.get('calibrated_sensor', info['calibrated_sensor_token'])
+                
+                info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
+                
+                rot_2 = np.arctan2((2*(sen_info['rotation'][0]*sen_info['rotation'][3]+sen_info['rotation'][1]*sen_info['rotation'][2])),(1-2*(sen_info['rotation'][3]**2+sen_info['rotation'][2]**2)))
+                rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) 
+                
+                rot_matrix = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
+                rot_matrix_2 = np.array([[np.cos(rot_2), -np.sin(rot_2)], [np.sin(rot_2), np.cos(rot_2)]])
+                xy_lidar = np.array([sen_info['translation'][0], sen_info['translation'][1]]).reshape(-1, 1) 
+                self.lidar_coor(rot_matrix, rot_matrix_2, xy_lidar )
+                #print("lidar complete")
+                if prnt:
+                    print ("file complete")
+                if prnt:
+                    print("lidar complete")
+                else:
+                    self.lidarpoint = lidar_new
+                    self.lidar_naar_cell()
+                    
             self.update_occerence()
             self.update_risk()
             if prnt:
@@ -104,19 +98,6 @@ class Detect:
             while number != b"":
                 quo, rem = divmod(som,5) #omdat je alleen x en y wilt gebruiken en niet de andere dingen kijk je naar het residu van het item waar die op zit.
                 if rem == 0: # als het residu = 0 heb je het x coordinaat en res = 1 is het y-coordinaat
-<<<<<<< HEAD
-                    
-                    x = np.frombuffer(number, dtype=np.float32)[0]
-                    
-                    number = f.read(4) #leest de volgende bit    
-                elif rem ==1:
-                    y = np.frombuffer(number, dtype=np.float32)[0]
-                    number = f.read(4) #leest de volgende bit    
-                elif rem == 2:  # residu = 2 -> z-coordinaat
-                    z = np.frombuffer(number, dtype=np.float32)[0]
-                    self.lidarpointV2.append((x, y, z))
-
-=======
                     x = np.frombuffer(number, dtype=np.float32)[0]
                     number = f.read(4) #leest de volgende bit    
                 elif rem ==1:
@@ -125,7 +106,6 @@ class Detect:
                 elif rem == 2:
                     z = np.frombuffer(number, dtype=np.float32)[0]
                     
->>>>>>> 4c90a7f1e28d3d78d17aaa3f91a12884526daaa5
                     xy = np.array([x, y]).reshape(-1, 1)
 
                     self.lidarpoint2d.append((x, y))
@@ -139,18 +119,12 @@ class Detect:
                     x_frame = (xy_rot[0]+self._x-self.patchxmin)/self.reso
                     y_frame = (xy_rot[1]+self._y-self.patchymin)/self.reso
                     self.lidarpoint.append((x_frame,y_frame))
-<<<<<<< HEAD
-
-                    x_frame = int(x_frame)
-                    y_frame = int(y_frame)
-=======
                     # print("rot_2 shape:", rot_2.shape)
                     # print("xy shape:", xy.shape)
                     # print("rot_matrix shape:", rot_matrix.shape)
                     # print (x_frame)
                     x_frame = int(np.round(x_frame))  # Rounds before conversion.
                     y_frame = int(np.round(y_frame))
->>>>>>> 4c90a7f1e28d3d78d17aaa3f91a12884526daaa5
                     lidar_punt += 1
 
                     x_global = x + self._x
@@ -174,7 +148,22 @@ class Detect:
 
         # print(lidar_punt)
         # print(som)
-
+    def lidar_naar_cell(self):
+        for i in range(len(self.lidarpoint)):
+            x_frame = self._x + self.lidarpoint[i][0]
+            y_frame = self._y + self.lidarpoint[i][1]
+            x_frame = int(np.round(x_frame))  # Rounds before conversion.
+            y_frame = int(np.round(y_frame))
+            if (
+                        x_frame < 0
+                        or y_frame < 0
+                        or x_frame >= self.width
+                        or y_frame >= self.length
+                    ):
+                i+=1
+            else: self.map.grid.get_cell(x_frame, y_frame).lidar_aantal[
+                            self._sampleindex
+                        ] += 1
 
     def update_occerence(self):
         """
