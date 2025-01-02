@@ -127,9 +127,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         Visualise.plot_layers(maps[1].grid, layer_plot_paths[1])
 
     # Initialize risk calculation
-    risk = Risk()
-    obj = Object(map)
-    dec = Detect(map)
     powe = power(map, amount_cones, max_power, subsample(map, amount_cones), object_filter(map))
     # Initialize components for risk calculation, object tracking, and detection
     risk = Risk(risk_weights)
@@ -139,15 +136,31 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # Process each sample in the map
     for i, sample in enumerate(maps[0].samples):
         # Update object data if required
-        if run_obj:
-            maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i, prnt=False)
-            maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i, prnt=False)
+        if i == 0:
+            if run_obj:
+                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i,object_list_new=[], prnt=False)
+                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i,object_list_new=[], prnt=False)
 
-        # Update detection data if required
-        if run_detect:
-            decs[0].update(sample=sample, sample_index=i, prnt=False)
-            decs[1].update(sample=sample, sample_index=i, prnt=False)
+            # Update detection data if required
+            if run_detect:
+                decs[0].update(sample=sample, sample_index=i, lidar_new=[], prnt=False)
+                decs[1].update(sample=sample, sample_index=i, lidar_new=[], prnt=False)
+        else:
+            if run_obj:
+                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i,object_list_new=[], prnt=False)
+                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i,object_list_new=objs_scan, prnt=False)
 
+            # Update detection data if required
+            if run_detect:
+                decs[0].update(sample=sample, sample_index=i, lidar_new=[], prnt=False)
+                decs[1].update(sample=sample, sample_index=i, lidar_new=lidar_new, prnt=False)
+        powe.sample = (sample, i)
+        power_opti = powe.p_optimal
+        sub.sample = (sample, i, scene_id, power_opti)
+        lidar_new = sub.subsamp
+        count_new = sub.count_new
+        filt.update(sample, i, lidar_new, count_new)
+        objs_scan = filt.object_scanned
         # Save point cloud plots for each sample
         if plot_pointcloud:
             Visualise.save_pointcloud_scatterplot(maps[0], decs[0].lidarpoint, i, pointclouds_folders[0], overlay=False)
