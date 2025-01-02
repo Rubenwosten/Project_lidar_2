@@ -65,7 +65,7 @@ class Object:
     #def sample(self, values):
         
 
-    def update(self, sample, x, y, sample_index, object_list_new, prnt=False):
+    def update(self, sample, x, y, sample_index, object_list_new=[], prnt=False):
         # add a check whether the tracking risk has already been set
         self._sample = sample
         self._x = x

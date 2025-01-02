@@ -33,7 +33,7 @@ class Detect:
     #def sample(self, values): #values is een tuple van sample ego_x en ego_y
         
 
-    def update(self, sample, sample_index, lidar_new, prnt=False):
+    def update(self, sample, sample_index, lidar_new=[], prnt=False):
         self._sample = sample
         self._sampleindex = sample_index
         self._x = self.ego[self._sampleindex][0]
@@ -63,11 +63,9 @@ class Detect:
                 #print("lidar complete")
                 if prnt:
                     print ("file complete")
-                if prnt:
-                    print("lidar complete")
-                else:
-                    self.lidarpoint = lidar_new
-                    self.lidar_naar_cell()
+            else:
+                self.lidarpoint = lidar_new
+                self.lidar_naar_cell()
                     
             self.update_occerence()
             self.update_risk()
@@ -115,7 +113,7 @@ class Detect:
                     xy_rot_2 = xy_rotated+xy_l
                     xy_rot = np.dot(rot_matrix, xy_rot_2)
 
-                    
+    
                     x_frame = (xy_rot[0]+self._x-self.patchxmin)/self.reso
                     y_frame = (xy_rot[1]+self._y-self.patchymin)/self.reso
                     self.lidarpoint.append((x_frame,y_frame))
@@ -126,9 +124,6 @@ class Detect:
                     x_frame = int(np.round(x_frame))  # Rounds before conversion.
                     y_frame = int(np.round(y_frame))
                     lidar_punt += 1
-
-                    x_global = x + self._x
-                    y_global = y + self._y
 
                     if (
                         x_frame < 0

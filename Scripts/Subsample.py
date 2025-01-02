@@ -40,18 +40,7 @@ class subsample():
         self.count = None
         self.count_new = None
 
-
-
-    @property 
-    def sample(self): #getter om sample aftelezen
-        return self._sample
-    
-    @sample.setter
-    def sample(self, values): #values is een tuple van sample ego_x en ego_y
-        return
-        
-                            
-
+      
     def update(self, sample, sample_index, scene_id, power):
         self._sample = sample
         self._sampleindex = sample_index
@@ -78,8 +67,8 @@ class subsample():
             self.file_get()
             self.lidar_coor(rot_matrix,rot_matrix_2, xy_lidar)
             cones = self.cones()
-            print (self.lidar_punt)
-            print (cones)
+            #print (self.lidar_punt)
+            #print (cones)
             for i in range(self.lidar_punt):
                 a,d = self.a_d(self.lidarpoint[i][0],self.lidarpoint[i][1], self.lidarpoint[i][2])
                 if a < 0:

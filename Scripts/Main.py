@@ -30,9 +30,9 @@ from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion import arcline_path_utils
 from nuscenes.map_expansion.bitmap import BitMap
 
-dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+#dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
-#dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
+dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
 map_name = 'boston-seaport'  #'singapore-onenorth'
 map_short = 'Boston'
@@ -53,11 +53,12 @@ RESOLUTION = 2 # meter
 run_detect = True
 run_obj = False
 plot_layers = False
-plot_pointcloud = False
+plot_pointcloud = True
 show_pointcloud = False
-plot_occ_hist = False
-plot_occ = False
-plot_risk = False
+plot_occ_hist = True
+plot_occ = True
+plot_risk = True
+plot_intermediate_risk = True
 
 def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # Entry point for the main simulation function
@@ -127,7 +128,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         Visualise.plot_layers(maps[1].grid, layer_plot_paths[1])
 
     # Initialize risk calculation
-    powe = power(map, amount_cones, max_power, subsample(map, amount_cones), object_filter(map))
+    powe = power(maps[1], amount_cones, max_power, subsample(maps[1], amount_cones), object_filter(maps[1]))
+
     # Initialize components for risk calculation, object tracking, and detection
     risk = Risk(risk_weights)
     objs = [Object(maps[0], constant_power=True), Object(maps[1], constant_power=False)]
@@ -138,29 +140,26 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         # Update object data if required
         if i == 0:
             if run_obj:
-                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i,object_list_new=[], prnt=False)
-                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i,object_list_new=[], prnt=False)
+                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i)
+                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i)
 
             # Update detection data if required
             if run_detect:
-                decs[0].update(sample=sample, sample_index=i, lidar_new=[], prnt=False)
-                decs[1].update(sample=sample, sample_index=i, lidar_new=[], prnt=False)
+                decs[0].update(sample=sample, sample_index=i)
+                decs[1].update(sample=sample, sample_index=i)
         else:
             if run_obj:
-                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i,object_list_new=[], prnt=False)
-                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i,object_list_new=objs_scan, prnt=False)
+                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i)
+                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i,object_list_new=objs_scan)
 
             # Update detection data if required
             if run_detect:
-                decs[0].update(sample=sample, sample_index=i, lidar_new=[], prnt=False)
-                decs[1].update(sample=sample, sample_index=i, lidar_new=lidar_new, prnt=False)
-        powe.sample = (sample, i)
-        power_opti = powe.p_optimal
-        sub.sample = (sample, i, scene_id, power_opti)
-        lidar_new = sub.subsamp
-        count_new = sub.count_new
-        filt.update(sample, i, lidar_new, count_new)
-        objs_scan = filt.object_scanned
+                decs[0].update(sample=sample, sample_index=i)
+                decs[1].update(sample=sample, sample_index=i, lidar_new=lidar_new)
+
+        # update the power profile for the next sample
+        lidar_new, objs_scan = powe.update(sample=sample, sample_index=i, scene_id=scene_id)
+        
         # Save point cloud plots for each sample
         if plot_pointcloud:
             Visualise.save_pointcloud_scatterplot(maps[0], decs[0].lidarpoint, i, pointclouds_folders[0], overlay=False)
@@ -168,6 +167,9 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.save_pointcloud_scatterplot(maps[1], decs[1].lidarpoint, i, pointclouds_folders[1], overlay=False)
             Visualise.save_pointcloud_scatterplot(maps[1], decs[1].lidarpoint, i, pointclouds_overlay_folders[1], overlay=True)
 
+        if plot_intermediate_risk:
+            Visualise.plot_risks(maps[0].grid, i, risk_plots_folders[0])
+            Visualise.plot_risks(maps[1].grid, i, risk_plots_folders[1])
         print(f"sample {i} complete\n")
 
     # Retrieve global maxima for visualization scaling
@@ -193,8 +195,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         maps[0].update(i=i, weights=risk_weights)  # Update grid with calculated weights
         maps[1].update(i=i, weights=risk_weights)  # Update grid with calculated weights
 
-        powe.update(sample=sample, sample_index=i, scene_id=scene_id)
-
         if plot_risk:
             Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
             Visualise.plot_risks_maximised(maps[1].grid, i, maxs, risk_plots_folders[1])
@@ -202,11 +202,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if plot_occ:
             Visualise.plot_occ(maps[0].grid, i, occ_folders[0])
             Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
-
-        
-        # Save individual risk plots
-        Visualise.plot_risks_maximised(map.grid, i, maxs, risk_plots_folder)
-        Visualise.plot_occ(map.grid, i, occ_folder)
         
         # plot occurrence range histograms
         if plot_occ_hist:
