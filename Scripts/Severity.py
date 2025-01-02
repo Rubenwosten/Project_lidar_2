@@ -24,67 +24,67 @@ class severity:
 
         traffic_participant_f = {       #the dictionary which defines severity factor according to traffic participant
         "human.pedestrian.adult": {
-            "score": 0.843333333,       #the factor based on category
+            "score": 1,       #the factor based on category
             "orientation": 0            #wether the orientation of the participant is relevant or not
         },
         "human.pedestrian.child": {
-            "score": 0.873,
+            "score": 1,
             "orientation": 0
         },
         "human.pedestrian.constructi": {
-            "score": 0.902666667,
+            "score": 1,
             "orientation": 0
         },
         "human.pedestrian.personal_m": {
-            "score": 0.932333333,
+            "score": 1,
             "orientation": 0
         },
         "human.pedestrian.police_off": {
-            "score": 0.962,
+            "score": 1,
             "orientation": 0
         },
         "movable_object.barrier": {
-            "score": 0.991666667,
+            "score": 0.369369369,
             "orientation": 0
         },
         "movable_object.debris": {
-            "score": 1.021333333,
+            "score": 0.36036036,
             "orientation": 0
         },
         "movable_object.pushable_pullable": {
-            "score": 1.051,
+            "score": 0.36036036,
             "orientation": 0
         },
         "movable_object.trafficcone": {
-            "score": 1.080666667,
+            "score": 0.36036036,
             "orientation": 0
         },
         "static_object.bicycle_rack": {
-            "score": 1.110333333,
+            "score": 0.522522523,
             "orientation": 0
         },
         "vehicle.bicycle": {
-            "score": 1.14,
+            "score": 1,
             "orientation": 1
         },
         "vehicle.bus.bendy": {
-            "score": 1.169666667,
+            "score": 1.0,
             "orientation": 1
         },
         "vehicle.bus.rigid": {
-            "score": 1.199333333,
+            "score": 1.0,
             "orientation": 1
         },
         "vehicle.car": {
-            "score": 1.229,
+            "score": 0.810811
             "orientation": 1
         },
         "vehicle.construction": {
-            "score": 1.258666667,
+            "score": 1.0,
             "orientation": 1
         },
         "vehicle.motorcycle": {
-            "score": 1.288333333,
+            "score": 0.765766,
             "orientation": 1
         },
         "vehicle.trailer": {
@@ -92,23 +92,21 @@ class severity:
             "orientation": 1
         },
         "vehicle.truck": {
-            "score": 1.347666667,
+            "score": 1.0,
             "orientation": 1
         }
-
-
-
         }
+        
         orientation_f={             #the dictionary defining the orientation factor vs ego vehicle
-            "front": 1.5,
+            "front": 0.8,
             "side": 1,
-            "rear": 0.9
+            "rear": 0.4
         }
 
         ego_orientation_f={         # the orientation factor of the ego vegicle
-            "front": 2,
-            "side": 1.5,
-            "rear": 1
+            "front": 0.8,
+            "side": 1,
+            "rear": 0.4
         }
     
 
