@@ -76,7 +76,7 @@ class severity:
             "orientation": 1
         },
         "vehicle.car": {
-            "score": 0.810811
+            "score": 0.810811,
             "orientation": 1
         },
         "vehicle.construction": {
@@ -96,7 +96,7 @@ class severity:
             "orientation": 1
         }
         }
-        
+
         orientation_f={             #the dictionary defining the orientation factor vs ego vehicle
             "front": 0.8,
             "side": 1,
