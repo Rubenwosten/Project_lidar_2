@@ -27,7 +27,7 @@ P_false = 10**-4 # false trigger mochten klein zetten
 class power:
     def __init__(self, map, n, max_power, sub, filt):
         self.map = map
-        self.reso = map.grid.resolution
+        self.reso = map.grid.res
         self.n_cones = n
         self.max_range = map.range
         self.ego = self.map.ego_positions
@@ -38,15 +38,7 @@ class power:
         self.sub = sub
         self.filt = filt
 
-        
-    @property
-    def sample(self): #getter om sample aftelezen
-        return self._sample
-    
-    @sample.setter
-    def sample(self, values):
-        return
-        
+            
 
     def update(self, sample, sample_index, scene_id):
         self._sample = sample 
@@ -71,21 +63,23 @@ class power:
         self.p_optimal = result.x
 
         power_opti = self.p_optimal
-        print(power_opti)
+        #print(power_opti)
 
         self.sub.update(sample, sample_index, scene_id, power_opti)
 
         lidar_new = self.sub.subsamp
         count_new = self.sub.count_new
 
-        print(count_new)
-        print(self.sub.count)
+        #print(count_new)
+        #print(self.sub.count)
 
         self.filt.update(sample, sample_index, lidar_new, count_new)
         objs_scan = self.filt.object_scanned
 
-        print(len(objs_scan))
-        print(self.filt.count)
+        #print(len(objs_scan))
+        #print(self.filt.count)
+
+        return lidar_new, objs_scan
 
     def cones (self):
         angle_step = 360 / self.n_cones
