@@ -25,16 +25,18 @@ P_false = 10**-4 # false trigger mochten klein zetten
 
 
 class power:
-    def __init__(self, map, reso, n, max_range, max_power):
+    def __init__(self, map, n, max_power, sub, filt):
         self.map = map
-        self.reso = reso
+        self.reso = map.grid.resolution
         self.n_cones = n
-        self.max_range = max_range
+        self.max_range = map.range
         self.ego = self.map.ego_positions
         self._sampleindex = None
         self._sample = None
         self.p_max= max_power
         self.oud = None
+        self.sub = sub
+        self.filt = filt
 
         
     @property
@@ -43,7 +45,12 @@ class power:
     
     @sample.setter
     def sample(self, values):
-        self._sample, self._sampleindex = values
+        return
+        
+
+    def update(self, sample, sample_index, scene_id):
+        self._sample = sample 
+        self._sampleindex = sample_index
         cells = self.map.grid.circle_of_interrest(self.max_range,self.ego[self._sampleindex])
         cones = self.assign_cell_to_cone(cells)
         total_risk = 0
@@ -63,7 +70,22 @@ class power:
         result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
         self.p_optimal = result.x
 
+        power_opti = self.p_optimal
+        print(power_opti)
 
+        self.sub.update(sample, sample_index, scene_id, power_opti)
+
+        lidar_new = self.sub.subsamp
+        count_new = self.sub.count_new
+
+        print(count_new)
+        print(self.sub.count)
+
+        self.filt.update(sample, sample_index, lidar_new, count_new)
+        objs_scan = self.filt.object_scanned
+
+        print(len(objs_scan))
+        print(self.filt.count)
 
     def cones (self):
         angle_step = 360 / self.n_cones

@@ -25,18 +25,18 @@ P_false = 10**-4 # false trigger mochten klein zetten
 car_height = 1.8
 
 class subsample():
-    def __init__(self, dataroot, map, n_cones, lidar_range):
+    def __init__(self, map, n_cones):
         self._power = None
         self._sample = None
         self.oud = None
         self.file = None
-        self.dataroot = dataroot
+        self.dataroot = map.dataroot
         self.map = map
         self.nusc = map.nusc
         self.lidar_punt= None
         self.n_cones = n_cones
-        self.max_range = lidar_range
-        self._scene = None
+        self.max_range = map.range
+        self._scene_id = None
         self.count = None
         self.count_new = None
 
@@ -48,7 +48,15 @@ class subsample():
     
     @sample.setter
     def sample(self, values): #values is een tuple van sample ego_x en ego_y
-        self._sample, self._sampleindex, self._scene, self._power = values
+        return
+        
+                            
+
+    def update(self, sample, sample_index, scene_id, power):
+        self._sample = sample
+        self._sampleindex = sample_index
+        self._scene_id = scene_id
+        self._power = power
         if self._sample != self.oud: # alleen runnen als sample veranderd
             self.lidarpoint = []
             self.subsamp = []
@@ -84,9 +92,6 @@ class subsample():
                                 self.subsamp.append((self.lidarpoint[i]))
                                 self.count_new +=1
                 else: self.count+=1
-                            
-
-
 
 
 
@@ -149,7 +154,7 @@ class subsample():
         Prob = 0.5*math.erfc(np.sqrt(-math.log(P_false))-np.sqrt(SNR+0.5))
         return Prob
     def create_bin_file(self):
-        output_file = f"lidar_data_{self._scene}_{self._sample}.bin"
+        output_file = f"lidar_data_{self._scene_id}_{self._sample}.bin"
         with open(output_file, "wb") as bin_file:
             for point in self.lidarpoint:
                 point_array = np.array(point, dtype=np.float32)

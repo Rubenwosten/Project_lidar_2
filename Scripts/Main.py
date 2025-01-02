@@ -130,9 +130,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     risk = Risk()
     obj = Object(map)
     dec = Detect(map)
-    powe = power(map,RESOLUTION, amount_cones,LIDAR_RANGE, max_power)
-    sub = subsample(dataroot, map, amount_cones, LIDAR_RANGE)
-    filt = object_filter(map)
+    powe = power(map, amount_cones, max_power, subsample(map, amount_cones), object_filter(map))
     # Initialize components for risk calculation, object tracking, and detection
     risk = Risk(risk_weights)
     objs = [Object(maps[0], constant_power=True), Object(maps[1], constant_power=False)]
@@ -182,6 +180,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         maps[0].update(i=i, weights=risk_weights)  # Update grid with calculated weights
         maps[1].update(i=i, weights=risk_weights)  # Update grid with calculated weights
 
+        powe.update(sample=sample, sample_index=i, scene_id=scene_id)
+
         if plot_risk:
             Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
             Visualise.plot_risks_maximised(maps[1].grid, i, maxs, risk_plots_folders[1])
@@ -190,22 +190,10 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_occ(maps[0].grid, i, occ_folders[0])
             Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
 
-        powe.sample = (sample, i)
-        power_opti = powe.p_optimal
-        print(power_opti)
-        sub.sample = (sample, i, scene_id, power_opti)
-        lidar_new = sub.subsamp
-        count_new = sub.count_new
-        print(count_new)
-        print(sub.count)
-        filt.update(sample, i, lidar_new, count_new)
-        objs_scan = filt.object_scanned
-        print(len(objs_scan))
-        print(filt.count)
         
         # Save individual risk plots
         Visualise.plot_risks_maximised(map.grid, i, maxs, risk_plots_folder)
-        Visualise.plot_occ(map.grid, i, occ_folder)   
+        Visualise.plot_occ(map.grid, i, occ_folder)
         
         # plot occurrence range histograms
         if plot_occ_hist:
