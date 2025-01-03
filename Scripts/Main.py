@@ -30,9 +30,9 @@ from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion import arcline_path_utils
 from nuscenes.map_expansion.bitmap import BitMap
 
-#dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
-dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
+#dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
 map_name = 'boston-seaport'  #'singapore-onenorth'
 map_short = 'Boston'
@@ -51,7 +51,7 @@ risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 scene_id = 1
 RESOLUTION = 2 # meter
 run_detect = True
-run_obj = False
+run_obj = True
 plot_layers = False
 plot_pointcloud = True
 show_pointcloud = False
@@ -140,26 +140,28 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         # Update object data if required
         if i == 0:
             if run_obj:
-                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i)
-                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i)
-
+                #maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i)
+                #maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i)
+                i+=1
             # Update detection data if required
             if run_detect:
-                decs[0].update(sample=sample, sample_index=i)
-                decs[1].update(sample=sample, sample_index=i)
+                #decs[0].update(sample=sample, sample_index=i)
+                #decs[1].update(sample=sample, sample_index=i)
+                i+=1
         else:
             if run_obj:
-                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i)
-                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i,object_list_new=objs_scan)
+                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud)
+                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud,object_list_new=objs_scan)
 
             # Update detection data if required
             if run_detect:
-                decs[0].update(sample=sample, sample_index=i)
-                decs[1].update(sample=sample, sample_index=i, lidar_new=lidar_new)
+                decs[0].update(sample=sample_oud, sample_index=sample_index_oud)
+                decs[1].update(sample=sample_oud, sample_index=sample_index_oud, lidar_new=lidar_new)
 
         # update the power profile for the next sample
         lidar_new, objs_scan = powe.update(sample=sample, sample_index=i, scene_id=scene_id)
-        
+        sample_oud = sample
+        sample_index_oud = i
         # Save point cloud plots for each sample
         if plot_pointcloud:
             Visualise.save_pointcloud_scatterplot(maps[0], decs[0].lidarpoint, i, pointclouds_folders[0], overlay=False)
