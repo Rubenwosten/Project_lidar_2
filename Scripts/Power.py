@@ -22,6 +22,8 @@ T =293 #20 graden celsius in K
 Kb = 1.380649*10**-23 # boltzmann constant
 e = 1.602*10**-19 # elementaire lading
 P_false = 10**-4 # false trigger mochten klein zetten
+freq = 16.6667
+T =1/freq
 
 
 class power:
@@ -57,20 +59,20 @@ class power:
         p_intial = np.zeros(self.n_cones)
         for cone, cone_cells in cones.items():
             p_intial[cone] = total_risk_per_cone[cone]*self.p_max/total_risk
-        power_bound = [(10,30)]*self.n_cones
+        power_bound = [(0.25*self.p_max,self.p_max)]*self.n_cones
         constraints = {"type": "eq", "fun": self.power_sum_constraint}
         result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
         self.p_optimal = result.x
 
         power_opti = self.p_optimal
-        #print(power_opti)
+        print(power_opti)
 
         self.sub.update(sample, sample_index, scene_id, power_opti)
 
         lidar_new = self.sub.subsamp
         count_new = self.sub.count_new
 
-        #print(count_new)
+        print(count_new)
         #print(self.sub.count)
 
         self.filt.update(sample, sample_index, lidar_new, count_new)
@@ -129,4 +131,4 @@ class power:
                 total_cost+= (1-prob)*risk
         return total_cost
     def power_sum_constraint(self,power):
-        return np.sum(power) - self.p_max
+        return np.sum(power*T/self.n_cones) - 0.75*self.p_max*T

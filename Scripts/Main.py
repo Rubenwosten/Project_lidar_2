@@ -41,7 +41,7 @@ map_width = 2979.5
 map_height = 2118.1
 
 amount_cones = 8
-max_power = 100
+max_power = 12
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
@@ -142,12 +142,12 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             if run_obj:
                 #maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i)
                 #maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i)
-                i+=1
+                print('niet')
             # Update detection data if required
             if run_detect:
                 #decs[0].update(sample=sample, sample_index=i)
                 #decs[1].update(sample=sample, sample_index=i)
-                i+=1
+                print('niet')
         else:
             if run_obj:
                 maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud)
