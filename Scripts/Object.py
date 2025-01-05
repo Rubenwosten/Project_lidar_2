@@ -78,7 +78,11 @@ class Object:
                 anns = info['anns']
             else: 
                 anns = object_list_new
+<<<<<<< HEAD
                 
+=======
+                #print(anns)
+>>>>>>> 488d18d76862ce2c667557b87cf3568a30836305
 
             if prnt:
                 print(f'amount of objects within the sample = {len(anns)}')
