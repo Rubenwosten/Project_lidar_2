@@ -30,9 +30,9 @@ from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion import arcline_path_utils
 from nuscenes.map_expansion.bitmap import BitMap
 
-dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+#dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
-#dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
+dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
 map_name = 'boston-seaport'  #'singapore-onenorth'
 map_short = 'Boston'
@@ -49,9 +49,12 @@ LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
 scene_id = 1
-RESOLUTION = 2 # meter
+RESOLUTION = 0.5 # meter
+
 run_detect = True
 run_obj = True
+run_power = True
+
 plot_layers = False
 plot_pointcloud = True
 show_pointcloud = False
@@ -59,6 +62,7 @@ plot_occ_hist = True
 plot_occ = True
 plot_risk = True
 plot_intermediate_risk = True
+
 
 def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # Entry point for the main simulation function
@@ -158,10 +162,11 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
                 decs[0].update(sample=sample_oud, sample_index=sample_index_oud)
                 decs[1].update(sample=sample_oud, sample_index=sample_index_oud, lidar_new=lidar_new)
 
-        # update the power profile for the next sample
-        lidar_new, objs_scan = powe.update(sample=sample, sample_index=i, scene_id=scene_id)
-        sample_oud = sample
-        sample_index_oud = i
+        if run_power:
+            # update the power profile for the next sample
+            lidar_new, objs_scan = powe.update(sample=sample, sample_index=i, scene_id=scene_id)
+            sample_oud = sample
+            sample_index_oud = i
         # Save point cloud plots for each sample
         if plot_pointcloud:
             Visualise.save_pointcloud_scatterplot(maps[0], decs[0].lidarpoint, i, pointclouds_folders[0], overlay=False)
@@ -209,6 +214,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if plot_occ_hist:
             Visualise.plot_occ_histogram(maps[0], i, occ_hist_folders[0])
             Visualise.plot_occ_histogram(maps[1], i, occ_hist_folders[1])
+        print('\n')
 
     # Save updated map grid with new risk values
     maps[0].save_grid(scene_data_paths[0])

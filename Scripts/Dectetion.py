@@ -113,14 +113,9 @@ class Detect:
                     xy_rot_2 = xy_rotated+xy_l
                     xy_rot = np.dot(rot_matrix, xy_rot_2)
 
-    
                     x_frame = (xy_rot[0]+self._x-self.patchxmin)/self.reso
                     y_frame = (xy_rot[1]+self._y-self.patchymin)/self.reso
                     self.lidarpoint.append((x_frame,y_frame))
-                    # print("rot_2 shape:", rot_2.shape)
-                    # print("xy shape:", xy.shape)
-                    # print("rot_matrix shape:", rot_matrix.shape)
-                    # print (x_frame)
                     x_frame = int(np.round(x_frame))  # Rounds before conversion.
                     y_frame = int(np.round(y_frame))
                     lidar_punt += 1

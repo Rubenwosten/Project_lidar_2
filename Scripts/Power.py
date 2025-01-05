@@ -65,14 +65,14 @@ class power:
         self.p_optimal = result.x
 
         power_opti = self.p_optimal
-        print(power_opti)
+        #print(power_opti)
 
         self.sub.update(sample, sample_index, scene_id, power_opti)
 
         lidar_new = self.sub.subsamp
         count_new = self.sub.count_new
 
-        print(count_new)
+        #print(count_new)
         #print(self.sub.count)
 
         self.filt.update(sample, sample_index, lidar_new, count_new)
