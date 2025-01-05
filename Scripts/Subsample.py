@@ -82,7 +82,7 @@ class subsample():
                                 self.subsamp.append((self.lidarpoint[i]))
                                 self.count_new +=1
                 else: self.count+=1
-            self.subsamp = np.array(self.subsamp) + np.array(self.ego[sample_index])
+            self.subsamp = np.array(self.subsamp) + np.array([self.ego[sample_index][0],self.ego[sample_index][1]])
 
 
 
