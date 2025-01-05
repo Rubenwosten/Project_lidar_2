@@ -39,6 +39,7 @@ class subsample():
         self._scene_id = None
         self.count = None
         self.count_new = None
+        self.ego = map.ego_positions
 
       
     def update(self, sample, sample_index, scene_id, power):
@@ -81,6 +82,7 @@ class subsample():
                                 self.subsamp.append((self.lidarpoint[i]))
                                 self.count_new +=1
                 else: self.count+=1
+            self.subsamp = np.array(self.subsamp) + np.array(self.ego[sample_index])
 
 
 

@@ -35,7 +35,7 @@ class object_filter:
                     r = info['size'][0]
                 else: r = info['size'][1]
                 for i in range(lidar_count):
-                    on_box = self.object_dec(bounding, (self._lidar_new[i][0]+self.ego[self._sample_index][0],self._lidar_new[i][1]+self.ego[self._sample_index][1]), r)
+                    on_box = self.object_dec(bounding, (self._lidar_new[i][0],self._lidar_new[i][1]), r)
                     if on_box == True:
                         self.object_scanned.append(ans)
                         break

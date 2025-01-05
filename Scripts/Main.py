@@ -62,6 +62,10 @@ plot_occ_hist = True
 plot_occ = True
 plot_risk = True
 plot_intermediate_risk = True
+n_cones = 8
+
+
+p_uniform = [8]*n_cones
 
 
 def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
@@ -206,7 +210,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     for i, sample in enumerate(maps[0].samples):
         maps[0].update(i=i, weights=risk_weights)  # Update grid with calculated weights
         maps[1].update(i=i, weights=risk_weights)  # Update grid with calculated weights
-
+        print(i)
         if plot_risk:
             Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
             Visualise.plot_risks_maximised(maps[1].grid, i, maxs, risk_plots_folders[1])
