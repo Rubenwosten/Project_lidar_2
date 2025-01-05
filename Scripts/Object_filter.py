@@ -39,6 +39,14 @@ class object_filter:
                     if on_box == True:
                         self.object_scanned.append(ans)
                         break
+            for i in range(len(object_list)):
+                an = object_list[i]
+                data = self.nusc.get('sample_annotation', an)
+                if an in self.object_scanned:
+                    self.object_scanned = self.object_scanned
+                else:
+                    if data['num_radar_pts'] != 0:
+                        self.object_scanned.append(data['token'])
             self.oud = sample
 
 

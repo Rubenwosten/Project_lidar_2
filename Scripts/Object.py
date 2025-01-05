@@ -76,12 +76,16 @@ class Object:
             if self.constant_power == True:
                 info = self.nusc.get('sample', self._sample)
                 anns = info['anns']
-            else: anns = object_list_new
+            else: 
+                anns = object_list_new
+                print(anns)
+
             if prnt:
                 print(f'amount of object within the sample = {len(anns)}')
             
-            for i in tqdm(range(len(anns)), desc='Tracking Objects'):
+            for i in range(len(anns)):
                 ans = anns[i]
+                print(ans)
                 info = self.nusc.get('sample_annotation', ans)
                 rot = np.arctan2((2*(info['rotation'][0]*info['rotation'][3]+info['rotation'][1]*info['rotation'][2])),(1-2*(info['rotation'][3]**2+info['rotation'][2]**2)))
                 voor = self.voorspelling(info['instance_token'])
