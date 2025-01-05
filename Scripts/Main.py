@@ -177,6 +177,11 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if plot_intermediate_risk:
             Visualise.plot_risks(maps[0].grid, i, risk_plots_folders[0])
             Visualise.plot_risks(maps[1].grid, i, risk_plots_folders[1])
+
+        if plot_occ:
+            Visualise.plot_occ(maps[0].grid, i, occ_folders[0])
+            Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
+
         print(f"sample {i} complete\n")
 
     # Retrieve global maxima for visualization scaling
@@ -206,15 +211,12 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
             Visualise.plot_risks_maximised(maps[1].grid, i, maxs, risk_plots_folders[1])
 
-        if plot_occ:
-            Visualise.plot_occ(maps[0].grid, i, occ_folders[0])
-            Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
-        
         # plot occurrence range histograms
         if plot_occ_hist:
             Visualise.plot_occ_histogram(maps[0], i, occ_hist_folders[0])
             Visualise.plot_occ_histogram(maps[1], i, occ_hist_folders[1])
         print('\n')
+
 
     # Save updated map grid with new risk values
     maps[0].save_grid(scene_data_paths[0])
