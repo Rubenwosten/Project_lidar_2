@@ -183,8 +183,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
 
         print(f"sample {i} complete\n")
-        if i == 10:
-            break
 
     # Retrieve global maxima for visualization scaling
     maxs_cons = maps[0].get_global_max()
@@ -219,8 +217,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_occ_histogram(maps[0], i, occ_hist_folders[0])
             Visualise.plot_occ_histogram(maps[1], i, occ_hist_folders[1])
         print('\n')
-        if i == 5:
-            break
 
 
     # Save updated map grid with new risk values
