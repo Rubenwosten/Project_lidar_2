@@ -687,3 +687,47 @@ class Visualise:
         plt.close()
 
         print(f"Average Total Occurrence histogram saved as '{plot_filename}'.")
+
+    @staticmethod
+    def plot_power_profile(variable_power, i, output_folder):
+        """
+        Visualizes the power profile as a histogram for two power profiles.
+
+        Args:
+        constant_power (list or np.array): Power values for the constant profile (in watts).
+        variable_power (list or np.array): Power values for the variable profile (in watts).
+        """
+        # Number of cones
+        num_cones = len(variable_power)
+        constant_power = [64] * num_cones
+        
+        # Calculate cone angles dynamically
+        cone_labels = [f"{j * 360 // num_cones}-{(j + 1) * 360 // num_cones}°" for j in range(num_cones)]
+        x = np.arange(num_cones)  # X-axis positions for bars
+
+        # Dynamic bar width
+        bar_width = 0.8 / 2  # Divide available space into 2 bars per cone
+
+        # Create the plot
+        plt.figure(figsize=(10, 6))
+
+        # Plot constant power profile
+        plt.bar(x - bar_width / 2, constant_power, width=bar_width, label='Constant Power', color='blue')
+
+        # Plot variable power profile
+        plt.bar(x + bar_width / 2, variable_power, width=bar_width, label='Variable Power', color='red')
+
+        # Customizing the plot
+        plt.xlabel('Cone Angles', fontsize=12)
+        plt.ylabel('Power (Watts)', fontsize=12)
+        plt.title(f'Power Profile Visualization Iteration {i}', fontsize=14)
+        plt.xticks(x, cone_labels, fontsize=10)
+        plt.legend()
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
+        
+       # Save the plot
+        plot_filename = os.path.join(output_folder, f"power_profile_it_{i}.png")
+        plt.savefig(plot_filename)
+        plt.close()
+
+        print(f"Power profile histogram saved as '{plot_filename}'.")
