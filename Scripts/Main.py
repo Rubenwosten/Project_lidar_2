@@ -30,9 +30,9 @@ from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion import arcline_path_utils
 from nuscenes.map_expansion.bitmap import BitMap
 
-dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+#dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
-#dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
+dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
 map_name = 'boston-seaport'  #'singapore-onenorth'
 map_short = 'Boston'
@@ -146,17 +146,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # Process each sample in the map
     for i, sample in enumerate(maps[0].samples):
         # Update object data if required
-        if i == 0:
-            if run_obj:
-                #maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i)
-                #maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i)
-                print('niet')
-            # Update detection data if required
-            if run_detect:
-                #decs[0].update(sample=sample, sample_index=i)
-                #decs[1].update(sample=sample, sample_index=i)
-                print('niet')
-        else:
+        if not i == 0:
             if run_obj:
                 maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud)
                 maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud,object_list_new=objs_scan)
@@ -210,7 +200,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     for i, sample in enumerate(maps[0].samples):
         maps[0].update(i=i, weights=risk_weights)  # Update grid with calculated weights
         maps[1].update(i=i, weights=risk_weights)  # Update grid with calculated weights
-        print(i)
+
         if plot_risk:
             Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
             Visualise.plot_risks_maximised(maps[1].grid, i, maxs, risk_plots_folders[1])

@@ -79,7 +79,8 @@ class Object:
                 print(len(anns))
             else: 
                 anns = object_list_new
-                print(len(anns))
+                #print(anns)
+
             if prnt:
                 print(f'amount of objects within the sample = {len(anns)}')
             
