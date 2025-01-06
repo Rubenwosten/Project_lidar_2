@@ -39,6 +39,7 @@ class power:
         self.oud = None
         self.sub = sub
         self.filt = filt
+        self.p_optis = []
 
             
 
@@ -63,9 +64,9 @@ class power:
         constraints = {"type": "eq", "fun": self.power_sum_constraint}
         result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
         self.p_optimal = result.x
+        self.p_optis.append(self.p_optimal)
 
         power_opti = self.p_optimal
-        #print(power_opti)
 
         self.sub.update(sample, sample_index, scene_id, power_opti)
 

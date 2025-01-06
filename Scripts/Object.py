@@ -76,7 +76,7 @@ class Object:
             if self.constant_power == True:
                 info = self.nusc.get('sample', self._sample)
                 anns = info['anns']
-                print(len(anns))
+                print(f'amount of objects within the sample = {len(anns)}')
             else: 
                 anns = object_list_new
                 #print(anns)

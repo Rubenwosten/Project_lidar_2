@@ -89,8 +89,8 @@ class subsample():
                                 self.count_new +=1
                             else: self.removed.append((self.lidarpoint[i]))
                 else: self.count+=1
-            print(len(self.subsamp))
-            print(len(self.lidarpoint))
+            print(f'Amount of lidar points in the subsample {len(self.subsamp)}')
+            print(f'Amount of lidar points in the bin file {len(self.lidarpoint)}')
 
 
 

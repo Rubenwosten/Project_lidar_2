@@ -109,7 +109,7 @@ class Grid:
 
         self.avg_static_risk[i] /= num_nonempty_cells
         self.avg_detection_risk[i] /= num_nonempty_cells
-        #self.avg_tracking_risk[i] /= num_nonempty_cells
+        self.avg_tracking_risk[i] /= num_nonempty_cells
         self.avg_total_risk[i] = w_static * self.avg_static_risk[i] + w_detect * self.avg_detection_risk[i] + w_track * self.avg_tracking_risk[i]
         
         

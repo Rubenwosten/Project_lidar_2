@@ -140,8 +140,8 @@ class Detect:
         # print(som)
     def lidar_naar_cell(self):
         for i in range(len(self.lidarpoint)):
-            x_frame =  (self.lidarpoint[i][0]-self.patchxmin)/self.reso
-            y_frame =  (self.lidarpoint[i][1]-self.patchymin)/self.reso
+            x_frame = self._x + self.lidarpoint[i][0]
+            y_frame = self._y + self.lidarpoint[i][1]
             x_frame = int(np.round(x_frame))  # Rounds before conversion.
             y_frame = int(np.round(y_frame))
             if (

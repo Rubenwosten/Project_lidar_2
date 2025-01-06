@@ -49,7 +49,7 @@ LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
 scene_id = 1
-RESOLUTION = 2 # meter
+RESOLUTION = 0.5 # meter
 
 run_detect = True
 run_obj = True
@@ -148,15 +148,21 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         # Update object data if required
         if not i == 0:
             if run_obj:
+                print('Updating objects')
                 maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud)
                 maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud,object_list_new=objs_scan)
 
             # Update detection data if required
             if run_detect:
+                print('Updating detection')
                 decs[0].update(sample=sample_oud, sample_index=sample_index_oud)
                 decs[1].update(sample=sample_oud, sample_index=sample_index_oud, lidar_new=lidar_new)
 
+        print('Normalising risks')
+        risk.Normalise_and_calc_risks_new(maps, i)
+
         if run_power:
+            print('Updating power profile')
             # update the power profile for the next sample
             lidar_new, objs_scan = powe.update(sample=sample, sample_index=i, scene_id=scene_id)
             sample_oud = sample
@@ -177,6 +183,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
 
         print(f"sample {i} complete\n")
+        if i == 10:
+            break
 
     # Retrieve global maxima for visualization scaling
     maxs_cons = maps[0].get_global_max()
@@ -184,7 +192,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
     # Calculate the biggest maxima across both simulations
     maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
-
+    print(f'maxs = {maxs} before norm')
     # Normalize risk data and calculate total risk
     risk.normalise_and_calc_risks(maps[0], maxs)
     risk.normalise_and_calc_risks(maps[1], maxs)
@@ -195,9 +203,10 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
     # Calculate the biggest maxima across both simulations
     maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
+    print(f'maxs = {maxs} after norm')
 
     # Update map grid with risk and object metrics, and generate plots for each sample
-    for i, sample in enumerate(maps[0].samples):
+    for i in range(len(maps[0].samples)):
         maps[0].update(i=i, weights=risk_weights)  # Update grid with calculated weights
         maps[1].update(i=i, weights=risk_weights)  # Update grid with calculated weights
 
@@ -210,6 +219,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_occ_histogram(maps[0], i, occ_hist_folders[0])
             Visualise.plot_occ_histogram(maps[1], i, occ_hist_folders[1])
         print('\n')
+        if i == 5:
+            break
 
 
     # Save updated map grid with new risk values
