@@ -35,7 +35,7 @@ def calc_proba(power,r):
     Prob = 0.5*math.erfc(np.sqrt(-math.log(P_false))-np.sqrt(SNR+0.5))
     return Prob
 
-pro = calc_proba(64,70)
+pro = calc_proba(,70)
 print(pro)
 e = 1080*2.997*10**8*6.626*10**-34/(900*10**-9)
 print(e)
