@@ -37,6 +37,7 @@ class object_filter:
                 for i in range(lidar_count):
                     on_box = self.object_dec(bounding, (self._lidar_new[i][0],self._lidar_new[i][1]), r)
                     if on_box == True:
+                        print (True)
                         self.object_scanned.append(ans)
                         break
             for i in range(len(object_list)):
@@ -46,6 +47,7 @@ class object_filter:
                     self.object_scanned = self.object_scanned
                 else:
                     if data['num_radar_pts'] != 0:
+                        print ("toegevoegd via radar")
                         self.object_scanned.append(data['token'])
             self.oud = sample
 
@@ -79,7 +81,7 @@ class object_filter:
             for i in range(2):
                 
                 y = self.linear_func(closest, (adjacent_corners[i][0],adjacent_corners[i][1]), lidar_coor[0])
-                if y is not None and np.isclose(y, lidar_coor[1], atol=1e-6):
+                if y is not None and np.isclose(y, lidar_coor[1], atol=1e-1):
                     return True
             return False
         else: return False

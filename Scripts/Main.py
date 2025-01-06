@@ -41,7 +41,7 @@ map_width = 2979.5
 map_height = 2118.1
 
 amount_cones = 8
-max_power = 12
+max_power = 64
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
@@ -49,7 +49,7 @@ LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
 scene_id = 1
-RESOLUTION = 0.5 # meter
+RESOLUTION = 2 # meter
 
 run_detect = True
 run_obj = True
