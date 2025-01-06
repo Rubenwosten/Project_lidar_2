@@ -84,13 +84,13 @@ class subsample():
                     for j, (start_angle, end_angle) in enumerate(cones):
                         if start_angle <= a < end_angle:
                             pro = self.calc_proba(self._power[j], d)
-                            if pro >= 0.6:
+                            if pro >= 0.9:
                                 self.subsamp.append((self.lidarpoint[i]))
                                 self.count_new +=1
                             else: self.removed.append((self.lidarpoint[i]))
                 else: self.count+=1
-            print(len(self.subsamp))
-            print(len(self.lidarpoint))
+            #print(len(self.subsamp))
+            #print(len(self.lidarpoint))
 
 
 

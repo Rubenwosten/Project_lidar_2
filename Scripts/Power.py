@@ -59,7 +59,7 @@ class power:
         p_intial = np.zeros(self.n_cones)
         for cone, cone_cells in cones.items():
             p_intial[cone] = total_risk_per_cone[cone]*self.p_max/total_risk
-        power_bound = [(8,self.p_max)]*self.n_cones
+        power_bound = [(16,self.p_max)]*self.n_cones
         constraints = {"type": "eq", "fun": self.power_sum_constraint}
         result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
         self.p_optimal = result.x
@@ -93,6 +93,8 @@ class power:
         x = cell.x
         y = cell.y
         angle = math.degrees(math.atan2((y-ego_pos[1]),(x-ego_pos[0])))
+        if angle < 0:
+            angle+=360
         distance = math.sqrt((y-ego_pos[1])**2 + (x-ego_pos[0])**2)
         return angle, distance
     
@@ -131,4 +133,4 @@ class power:
                 total_cost+= (1-prob)*risk
         return total_cost
     def power_sum_constraint(self,power):
-        return np.sum(power*T/self.n_cones) - 0.75*self.p_max*T
+        return np.sum(power*T/self.n_cones) - 0.5*self.p_max*T
