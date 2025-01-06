@@ -27,7 +27,7 @@ T =1/freq
 
 
 class power:
-    def __init__(self, map, n, max_power, sub, filt):
+    def __init__(self, map, n, max_power, power_procent, sub, filt):
         self.map = map
         self.reso = map.grid.res
         self.n_cones = n
@@ -38,6 +38,7 @@ class power:
         self.p_max= max_power
         self.oud = None
         self.sub = sub
+        self.power_procent = power_procent
         self.filt = filt
         self.p_optis = []
 
@@ -134,4 +135,4 @@ class power:
                 total_cost+= (1-prob)*risk
         return total_cost
     def power_sum_constraint(self,power):
-        return np.sum(power*T/self.n_cones) - 0.5*self.p_max*T
+        return np.sum(power*T/self.n_cones) - self.power_procent*self.p_max*T

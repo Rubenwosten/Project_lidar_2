@@ -42,9 +42,11 @@ map_height = 2118.1
 
 amount_cones = 8
 max_power = 64
+procent = 0.75
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
+
 
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
@@ -136,7 +138,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         Visualise.plot_layers(maps[1].grid, layer_plot_paths[1])
 
     # Initialize risk calculation
-    powe = power(maps[1], amount_cones, max_power, subsample(maps[1], amount_cones), object_filter(maps[1]))
+    powe = power(maps[1], amount_cones, max_power,procent, subsample(maps[1], amount_cones), object_filter(maps[1]))
 
     # Initialize components for risk calculation, object tracking, and detection
     risk = Risk(risk_weights)
