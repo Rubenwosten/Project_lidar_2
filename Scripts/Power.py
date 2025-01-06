@@ -59,7 +59,7 @@ class power:
         p_intial = np.zeros(self.n_cones)
         for cone, cone_cells in cones.items():
             p_intial[cone] = total_risk_per_cone[cone]*self.p_max/total_risk
-        power_bound = [(6,self.p_max)]*self.n_cones
+        power_bound = [(8,self.p_max)]*self.n_cones
         constraints = {"type": "eq", "fun": self.power_sum_constraint}
         result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
         self.p_optimal = result.x

@@ -5,7 +5,7 @@ import math
 
 erx = 0.9 # receiver optics effeciency
 etx = 0.9 # emmitter optics effeciency
-n = 1 #target reflectivity
+n = 0.1 #target reflectivity
 D = 25*pow(10,-3) #diameter lens 25 mm
 Aovx = 1/np.pi #1 graden in radialen
 Aovy = 1/np.pi #1 graden in radialen
@@ -41,6 +41,9 @@ class subsample():
         self.count_new = None
         self.ego = map.ego_positions
         self._sampleindex = None
+        self.removed = None
+        self.lidarpoint = None
+        self.subsamp = None
 
 
       
@@ -52,6 +55,7 @@ class subsample():
         if self._sample != self.oud: # alleen runnen als sample veranderd
             self.lidarpoint = []
             self.subsamp = []
+            self.removed = []
             self.count = 0
             self.count_new = 0
             info = self.nusc.get('sample', self._sample)
@@ -80,10 +84,13 @@ class subsample():
                     for j, (start_angle, end_angle) in enumerate(cones):
                         if start_angle <= a < end_angle:
                             pro = self.calc_proba(self._power[j], d)
-                            if pro >= 0.9:
+                            if pro >= 0.6:
                                 self.subsamp.append((self.lidarpoint[i]))
                                 self.count_new +=1
+                            else: self.removed.append((self.lidarpoint[i]))
                 else: self.count+=1
+            print(len(self.subsamp))
+            print(len(self.lidarpoint))
 
 
 
@@ -129,7 +136,7 @@ class subsample():
 
     def a_d (self, x, y, z):
         angle = math.degrees(math.atan2((y),(x)))
-        distance = math.sqrt((y)**2 + (x)**2 + (z-car_height)**2)
+        distance = math.sqrt((y-self.ego[self._sampleindex][1])**2 + (x-self.ego[self._sampleindex][0])**2 + (z-car_height)**2)
         return angle, distance
     
     def cones (self):
