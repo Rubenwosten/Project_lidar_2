@@ -57,7 +57,7 @@ run_detect = True
 run_obj = True
 run_power = True
 
-plot_layers = False
+plot_layers = True
 plot_pointcloud = True
 show_pointcloud = False
 plot_occ_hist = True
@@ -192,7 +192,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
 
         if plot_power_profile:
-            Visualise.plot_power_profile(powe1.p_optis[i], i, power_profile_folder)
+            Visualise.plot_power_profile(powe1.p_optimal, powe2.p_optimal, i, power_profile_folder)
 
         print(f"sample {i} complete\n")
 
@@ -240,7 +240,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     Visualise.plot_avg_occ(maps, comparison_folder)
     Visualise.plot_total_var(maps[0].grid.total_obj, maps[1].grid.total_obj, 'Total Objects', comparison_folder)
     Visualise.plot_total_var(maps[0].grid.total_obj_sev, maps[1].grid.total_obj, 'Total Object severity', comparison_folder)
-    Visualise.plot_removed_pointcount(np.zeros(len(maps[0].samples)), powe.sub.verschil, comparison_folder)
+    Visualise.plot_removed_pointcount(powe1.sub.verschil, powe2.sub.verschil, comparison_folder)
     Visualise.plot_avg_occ_histogram(maps, comparison_folder)
 
     Visualise.create_gif_from_folder(power_profile_folder, os.path.join(power_profile_folder, 'power_profile.gif'))
