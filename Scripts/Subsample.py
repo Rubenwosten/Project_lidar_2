@@ -58,7 +58,6 @@ class subsample():
             self.removed = []
             self.count = 0
             self.count_new = 0
-            self.verschil = None
             info = self.nusc.get('sample', self._sample)
             info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
             

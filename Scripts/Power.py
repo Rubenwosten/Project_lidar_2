@@ -27,7 +27,7 @@ T =1/freq
 
 
 class power:
-    def __init__(self, map, n, max_power, power_procent, sub, filt):
+    def __init__(self, map, n, max_power, power_procent, constant_power, sub, filt):
         self.map = map
         self.reso = map.grid.res
         self.n_cones = n
@@ -40,6 +40,7 @@ class power:
         self.sub = sub
         self.power_procent = power_procent
         self.filt = filt
+        self.constant_power = constant_power
         self.p_optis = []
 
             
@@ -47,26 +48,29 @@ class power:
     def update(self, sample, sample_index, scene_id):
         self._sample = sample 
         self._sampleindex = sample_index
-        cells = self.map.grid.circle_of_interrest(self.max_range,self.ego[self._sampleindex])
-        cones = self.assign_cell_to_cone(cells)
-        total_risk = 0
-        total_risk_per_cone = np.zeros(self.n_cones)
-        for cone_id, cone_cells in cones.items():
-            for cell,distance in cone_cells:
-                risk_cell = cell.total_risk[self._sampleindex]
+        if self.constant_power == True:
+            self.p_optimal = [self.power_procent*self.p_max]*self.n_cones
+        else:    
+            cells = self.map.grid.circle_of_interrest(self.max_range,self.ego[self._sampleindex])
+            cones = self.assign_cell_to_cone(cells)
+            total_risk = 0
+            total_risk_per_cone = np.zeros(self.n_cones)
+            for cone_id, cone_cells in cones.items():
+                for cell,distance in cone_cells:
+                    risk_cell = cell.total_risk[self._sampleindex]
 
-                total_risk+=risk_cell
-                total_risk_per_cone[cone_id] +=risk_cell
-        p = np.zeros(self.n_cones)
-        p_intial = np.zeros(self.n_cones)
-        for cone, cone_cells in cones.items():
-            p_intial[cone] = total_risk_per_cone[cone]*self.p_max/total_risk
-        power_bound = [(16,self.p_max)]*self.n_cones
-        constraints = {"type": "eq", "fun": self.power_sum_constraint}
-        result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
-        self.p_optimal = result.x
-        self.p_optis.append(self.p_optimal)
-        print(f'power profile of it {sample_index}: {self.p_optimal}')
+                    total_risk+=risk_cell
+                    total_risk_per_cone[cone_id] +=risk_cell
+            p = np.zeros(self.n_cones)
+            p_intial = np.zeros(self.n_cones)
+            for cone, cone_cells in cones.items():
+                p_intial[cone] = total_risk_per_cone[cone]*self.p_max/total_risk
+            power_bound = [(16,self.p_max)]*self.n_cones
+            constraints = {"type": "eq", "fun": self.power_sum_constraint}
+            result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
+            self.p_optimal = result.x
+            self.p_optis.append(self.p_optimal)
+            print(f'power profile of it {sample_index}: {self.p_optimal}')
 
         power_opti = self.p_optimal
 
