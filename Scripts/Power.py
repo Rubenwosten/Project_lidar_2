@@ -27,7 +27,7 @@ T =1/freq
 
 
 class power:
-    def __init__(self, map, n, max_power, power_procent, constant_power, sub, filt):
+    def __init__(self, map, n, max_power, power_procent, sub, filt, constant_power):
         self.map = map
         self.reso = map.grid.res
         self.n_cones = n

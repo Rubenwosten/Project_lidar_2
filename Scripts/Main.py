@@ -142,7 +142,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         Visualise.plot_layers(maps[1].grid, layer_plot_paths[1])
 
     # Initialize risk calculation
-    powe = power(maps[1], amount_cones, max_power,procent, subsample(maps[1], amount_cones), object_filter(maps[1]))
+    powe1 = power(maps[0], amount_cones, max_power,procent, subsample(maps[0], amount_cones), object_filter(maps[0]), constant_power = True)
+    powe2 = power(maps[1], amount_cones, max_power,procent, subsample(maps[1], amount_cones), object_filter(maps[1]),  constant_power=False)
 
     # Initialize components for risk calculation, object tracking, and detection
     risk = Risk(risk_weights)
