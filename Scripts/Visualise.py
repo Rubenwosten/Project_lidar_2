@@ -171,7 +171,7 @@ class Visualise:
             cbar.set_label(title)
 
         # Add the custom title to the entire figure
-        fig.suptitle(f"Risk plots Iteration {index}", fontsize=16)
+        fig.suptitle(f"Risk plots Sample {index}", fontsize=16)
         plt.tight_layout(pad=5.0)  # Increase padding between subplots for better spacing
         #plt.show()
 
@@ -183,7 +183,7 @@ class Visualise:
         Visualise.show_risks(grid, index)
         plt.savefig(risk_plot_filename)
         plt.close() 
-        print(f"Risk plot for iteration {index} saved as '{risk_plot_filename}'.")
+        print(f"Risk plot for sample {index} saved as '{risk_plot_filename}'.")
     
     @staticmethod
     def show_risks_maximised(grid, index, max_total, max_static, max_detect, max_track):
@@ -225,7 +225,7 @@ class Visualise:
             cbar.set_label(title)
 
         # Add the custom title to the entire figure
-        fig.suptitle(f"Risk plots Iteration {index}", fontsize=16)
+        fig.suptitle(f"Risk plots Sample {index}", fontsize=16)
         # Adjust layout to avoid overlap
         plt.tight_layout(pad=5.0)  # Increase padding between subplots for better spacing
         #plt.show()
@@ -239,7 +239,7 @@ class Visualise:
         Visualise.show_risks_maximised(grid, index, max_total, max_static, max_detect, max_track)  
         plt.savefig(risk_plot_filename)
         plt.close()
-        print(f"Risk plot for iteration {index} saved as '{risk_plot_filename}'.")
+        print(f"Risk plot for sample {index} saved as '{risk_plot_filename}'.")
 
     @staticmethod
     def plot_grid(grid, index, prnt=False):
@@ -378,7 +378,7 @@ class Visualise:
 
         # Configure plot aesthetics
         plt.gca().set_aspect('equal', adjustable='box')  # Ensure aspect ratio matches the map
-        plt.title(f"Point Cloud Iteration {iteration}")
+        plt.title(f"Point Cloud Sample {iteration}")
         plt.xlabel("X (Map Coordinates)")
         plt.ylabel("Y (Map Coordinates)")
 
@@ -387,7 +387,7 @@ class Visualise:
         plt.savefig(plot_filename, dpi=300, bbox_inches='tight')
         plt.close()
 
-        print(f"Point cloud scatter plot for iteration {iteration} saved as '{plot_filename}'.")
+        print(f"Point cloud scatter plot for sample {iteration} saved as '{plot_filename}'.")
 
     @staticmethod
     def show_lidar_pointcloud_2d(pointcloud, i):
@@ -402,7 +402,7 @@ class Visualise:
         ax.scatter(x_coords, y_coords, c='black', s=1, marker='.')
 
         # Setting the labels and title
-        ax.set_title(f"3D Point Cloud Iteration {i}")
+        ax.set_title(f"2D Point Cloud Sample {i}")
         ax.set_xlabel("X (Global Coordinates)")
         ax.set_ylabel("Y (Global Coordinates)")
 
@@ -427,7 +427,7 @@ class Visualise:
         ax.scatter(x_coords, y_coords, z_coords, c='black', s=1, marker='.')
 
         # Setting the labels and title
-        ax.set_title(f"3D Point Cloud Iteration {i}")
+        ax.set_title(f"3D Point Cloud Sample {i}")
         ax.set_xlabel("X (Global Coordinates)")
         ax.set_ylabel("Y (Global Coordinates)")
         ax.set_zlabel("Z (Global Coordinates)")
@@ -501,7 +501,7 @@ class Visualise:
 
         # Add title and labels
         plt.title("Comparison of Average Risks Between Simulations")
-        plt.xlabel("Index")
+        plt.xlabel("Sample")
         plt.ylabel("Average Risk Value")
 
         # Add legend to distinguish between grids
@@ -559,7 +559,7 @@ class Visualise:
 
         # Add title and labels
         plt.title('Average Occurrence')
-        plt.xlabel("Index")
+        plt.xlabel("Sample")
         plt.ylim(0, 1)
 
         # Add legend to distinguish between the two lines
@@ -621,7 +621,7 @@ class Visualise:
         plt.ylim(0,1)
         plt.xlabel("Range (meters)")
         plt.ylabel("Average Occurrence per Cell")
-        plt.title(f"Average Occurrence per Cell Histogram for Timestep {timestep}")
+        plt.title(f"Average Occurrence per Cell Histogram for Sample {timestep}")
         plt.xticks(rotation=45)
         plt.tight_layout()
         
@@ -629,7 +629,7 @@ class Visualise:
         plot_filename = os.path.join(output_folder, f"occ_hist_it_{timestep}.png")
         plt.savefig(plot_filename)
         plt.close()
-        print(f"Occurrence histogram it {timestep} saved as '{plot_filename}'.")
+        print(f"Occurrence histogram sample {timestep} saved as '{plot_filename}'.")
 
     @staticmethod
     def plot_avg_occ_histogram(maps, output_folder):
@@ -720,7 +720,7 @@ class Visualise:
         # Customizing the plot
         plt.xlabel('Cone Angles', fontsize=12)
         plt.ylabel('Power (Watts)', fontsize=12)
-        plt.title(f'Power Profile Visualization Iteration {i}', fontsize=14)
+        plt.title(f'Power Profile Visualization Sample {i}', fontsize=14)
         plt.xticks(x, cone_labels, fontsize=10)
         plt.legend()
         plt.grid(axis='y', linestyle='--', alpha=0.7)
@@ -731,3 +731,38 @@ class Visualise:
         plt.close()
 
         print(f"Power profile histogram saved as '{plot_filename}'.")
+
+    @staticmethod
+    def plot_removed_pointcount(rem_points_cons, rem_points_var, output_folder):
+
+        # Calculate the difference between the two simulations
+        difference = [sim1 - sim2 for sim1, sim2 in zip(rem_points_cons, rem_points_var)]
+
+        plt.figure(figsize=(12, 8))
+
+        # Plot removed lidar points for Simulation 1
+        plt.plot(rem_points_cons, label="Simulation 1", color="blue", linewidth=2)
+
+        # Plot removed lidar points for Simulation 2
+        plt.plot(rem_points_var, label="Simulation 2", color="red", linewidth=2)
+
+        # Plot the difference
+        plt.plot(difference, label="Difference", color="green", linestyle=':', linewidth=2)
+
+        # Add title and labels
+        plt.title('Removed Lidar Points')
+        plt.xlabel("Sample")
+        plt.ylabel("Removed Points")
+
+        # Add legend to distinguish between the lines
+        plt.legend(loc='upper right')
+
+        # Show grid for better readability
+        plt.grid(True)
+
+        # Save the plot
+        plot_filename = os.path.join(output_folder, "Removed_Lidar_Points.png")
+        plt.savefig(plot_filename)
+        plt.close()
+
+        print(f"Removed Lidar Points plot saved as '{plot_filename}'.")

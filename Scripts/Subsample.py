@@ -44,6 +44,7 @@ class subsample():
         self.removed = None
         self.lidarpoint = None
         self.subsamp = None
+        self.verschil = []
 
 
       
@@ -89,7 +90,7 @@ class subsample():
                                 self.count_new +=1
                             else: self.removed.append((self.lidarpoint[i]))
                 else: self.count+=1
-            self.verschil =len(self.lidarpoint) - len(self.subsamp)
+            self.verschil.append(len(self.lidarpoint) - len(self.subsamp))
             print(f'Amount of lidar points in the subsample {len(self.subsamp)}')
             print(f'Amount of lidar points in the bin file {len(self.lidarpoint)}')
 
