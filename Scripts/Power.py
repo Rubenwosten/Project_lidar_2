@@ -66,6 +66,7 @@ class power:
         result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
         self.p_optimal = result.x
         self.p_optis.append(self.p_optimal)
+        print(f'power profile of it {sample_index}: {self.p_optimal}')
 
         power_opti = self.p_optimal
 

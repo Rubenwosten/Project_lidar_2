@@ -41,7 +41,7 @@ map_width = 2979.5
 map_height = 2118.1
 
 amount_cones = 8
-max_power = 64
+max_power = 64 # watt
 procent = 0.75
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
@@ -64,6 +64,7 @@ plot_occ_hist = True
 plot_occ = True
 plot_risk = True
 plot_intermediate_risk = True
+plot_power_profile = True
 n_cones = 8
 
 
@@ -87,6 +88,9 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # create a folder where all the comparison plots are made
     comparison_folder = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}")
     os.makedirs(comparison_folder, exist_ok=True)
+
+    power_profile_folder = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Power Profiles')
+    os.makedirs(power_profile_folder, exist_ok=True)
 
     plots_folders = []
     gif_folders = []
@@ -184,6 +188,9 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_occ(maps[0].grid, i, occ_folders[0])
             Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
 
+        if plot_power_profile:
+            Visualise.plot_power_profile(powe.p_optis[i], i, power_profile_folder)
+
         print(f"sample {i} complete\n")
 
     # Retrieve global maxima for visualization scaling
@@ -218,6 +225,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if plot_occ_hist:
             Visualise.plot_occ_histogram(maps[0], i, occ_hist_folders[0])
             Visualise.plot_occ_histogram(maps[1], i, occ_hist_folders[1])
+
         print('\n')
 
 
@@ -231,6 +239,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     Visualise.plot_total_var(maps[0].grid.total_obj_sev, maps[1].grid.total_obj, 'Total Object severity', comparison_folder)
     Visualise.plot_avg_occ_histogram(maps, comparison_folder)
 
+    Visualise.create_gif_from_folder(power_profile_folder[run], os.path.join(power_profile_folder, 'power_profile.gif'))
     # Generate summary plots for the simulation
     for run, map in enumerate(maps):
         # Create GIFs for visualizing results
