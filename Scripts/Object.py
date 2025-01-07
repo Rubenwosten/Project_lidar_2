@@ -73,17 +73,10 @@ class Object:
         self._sampleindex = sample_index
         total_sev = 0
         if self._sample != self.oud:
-            if self.constant_power == True:
-                info = self.nusc.get('sample', self._sample)
-                anns = info['anns']
-                print(f'amount of objects within the sample = {len(anns)}')
-            else: 
-                anns = object_list_new
-                #print(anns)
-
+            anns = object_list_new
+            #print(anns)
             if prnt:
                 print(f'amount of objects within the sample = {len(anns)}')
-            
             for i in range(len(anns)):
                 ans = anns[i]
                 

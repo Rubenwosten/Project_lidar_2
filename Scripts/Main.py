@@ -42,7 +42,7 @@ map_height = 2118.1
 
 amount_cones = 8
 max_power = 64 # watt
-procent = 0.5
+procent = 0.75
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
@@ -64,7 +64,7 @@ plot_occ_hist = True
 plot_occ = True
 plot_risk = True
 plot_intermediate_risk = True
-plot_power_profile = True
+plot_power_profile = False
 n_cones = 8
 
 
@@ -142,7 +142,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         Visualise.plot_layers(maps[1].grid, layer_plot_paths[1])
 
     # Initialize risk calculation
-    powe = power(maps[1], amount_cones, max_power,procent, subsample(maps[1], amount_cones), object_filter(maps[1]))
+    powe1 = power(maps[0], amount_cones, max_power,procent, subsample(maps[0], amount_cones), object_filter(maps[0]), constant_power = True)
+    powe2 = power(maps[1], amount_cones, max_power,procent, subsample(maps[1], amount_cones), object_filter(maps[1]),  constant_power=False)
 
     # Initialize components for risk calculation, object tracking, and detection
     risk = Risk(risk_weights)
@@ -155,14 +156,14 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if not i == 0:
             if run_obj:
                 print('Updating objects')
-                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud)
-                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud,object_list_new=objs_scan)
+                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud,object_list_new=objs_scan_const)
+                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud,object_list_new=objs_scan_var)
 
             # Update detection data if required
             if run_detect:
                 print('Updating detection')
-                decs[0].update(sample=sample_oud, sample_index=sample_index_oud)
-                decs[1].update(sample=sample_oud, sample_index=sample_index_oud, lidar_new=lidar_new)
+                decs[0].update(sample=sample_oud, sample_index=sample_index_oud, lidar_new=lidar_new_const)
+                decs[1].update(sample=sample_oud, sample_index=sample_index_oud, lidar_new=lidar_new_var)
 
         print('Normalising risks')
         risk.Normalise_and_calc_risks_new(maps, i)
@@ -170,7 +171,9 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if run_power:
             print('Updating power profile')
             # update the power profile for the next sample
-            lidar_new, objs_scan = powe.update(sample=sample, sample_index=i, scene_id=scene_id)
+            lidar_new_const, objs_scan_const = powe1.update(sample=sample, sample_index=i, scene_id=scene_id)
+            lidar_new_var, objs_scan_var = powe2.update(sample=sample, sample_index=i, scene_id=scene_id)
+
             sample_oud = sample
             sample_index_oud = i
         # Save point cloud plots for each sample
@@ -189,7 +192,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
 
         if plot_power_profile:
-            Visualise.plot_power_profile(powe.p_optimal, powe.p_optimal, i, power_profile_folder)
+            Visualise.plot_power_profile(powe1.p_optimal, powe2.p_optimal, i, power_profile_folder)
 
         print(f"sample {i} complete\n")
 
@@ -237,7 +240,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     Visualise.plot_avg_occ(maps, comparison_folder)
     Visualise.plot_total_var(maps[0].grid.total_obj, maps[1].grid.total_obj, 'Total Objects', comparison_folder)
     Visualise.plot_total_var(maps[0].grid.total_obj_sev, maps[1].grid.total_obj, 'Total Object severity', comparison_folder)
-    Visualise.plot_removed_pointcount(np.zeros(len(maps[0].samples)), powe.sub.verschil, comparison_folder)
+    Visualise.plot_removed_pointcount(powe1.sub.verschil, powe2.sub.verschil, comparison_folder)
     Visualise.plot_avg_occ_histogram(maps, comparison_folder)
 
     Visualise.create_gif_from_folder(power_profile_folder, os.path.join(power_profile_folder, 'power_profile.gif'))

@@ -39,3 +39,34 @@ pro = calc_proba(16,35)
 print(pro)
 e = 1080*2.997*10**8*6.626*10**-34/(900*10**-9)
 print(e)
+#dec lines.
+'''            if self.constant_power==True:
+                self.file_get()
+                #print ("file complete")
+                info = self.nusc.get('sample', self._sample)
+                info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
+                
+                sen_info = self.nusc.get('calibrated_sensor', info['calibrated_sensor_token'])
+                
+                info_2 = self.nusc.get('ego_pose', info['ego_pose_token'])
+                
+                rot_2 = np.arctan2((2*(sen_info['rotation'][0]*sen_info['rotation'][3]+sen_info['rotation'][1]*sen_info['rotation'][2])),(1-2*(sen_info['rotation'][3]**2+sen_info['rotation'][2]**2)))
+                rot = np.arctan2((2*(info_2['rotation'][0]*info_2['rotation'][3]+info_2['rotation'][1]*info_2['rotation'][2])),(1-2*(info_2['rotation'][3]**2+info_2['rotation'][2]**2))) 
+                
+                rot_matrix = np.array([[np.cos(rot), -np.sin(rot)], [np.sin(rot), np.cos(rot)]])
+                rot_matrix_2 = np.array([[np.cos(rot_2), -np.sin(rot_2)], [np.sin(rot_2), np.cos(rot_2)]])
+                xy_lidar = np.array([sen_info['translation'][0], sen_info['translation'][1]]).reshape(-1, 1) 
+                self.lidar_coor(rot_matrix, rot_matrix_2, xy_lidar )
+                #print("lidar complete")
+                if prnt:
+                    print ("file complete")
+            else:
+'''
+
+#track lines
+'''             if self.constant_power == True:
+                info = self.nusc.get('sample', self._sample)
+                anns = info['anns']
+                print(f'amount of objects within the sample = {len(anns)}')
+            else:
+'''
