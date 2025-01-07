@@ -42,7 +42,7 @@ map_height = 2118.1
 
 amount_cones = 8
 max_power = 64 # watt
-procent = 0.75
+procent = 0.5
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
@@ -237,9 +237,10 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     Visualise.plot_avg_occ(maps, comparison_folder)
     Visualise.plot_total_var(maps[0].grid.total_obj, maps[1].grid.total_obj, 'Total Objects', comparison_folder)
     Visualise.plot_total_var(maps[0].grid.total_obj_sev, maps[1].grid.total_obj, 'Total Object severity', comparison_folder)
+    Visualise.plot_removed_pointcount(np.zeros(len(maps[0].samples)), powe.sub.verschil, comparison_folder)
     Visualise.plot_avg_occ_histogram(maps, comparison_folder)
 
-    Visualise.create_gif_from_folder(power_profile_folder[run], os.path.join(power_profile_folder, 'power_profile.gif'))
+    Visualise.create_gif_from_folder(power_profile_folder, os.path.join(power_profile_folder, 'power_profile.gif'))
     # Generate summary plots for the simulation
     for run, map in enumerate(maps):
         # Create GIFs for visualizing results

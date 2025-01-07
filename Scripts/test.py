@@ -1,3 +1,2 @@
-import matplotlib
-
-print(matplotlib.__version__)
+import numpy as np 
+print(np.zeros(5))
