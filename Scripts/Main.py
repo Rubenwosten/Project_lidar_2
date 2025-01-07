@@ -57,7 +57,7 @@ run_detect = True
 run_obj = True
 run_power = True
 
-plot_layers = False
+plot_layers = True
 plot_pointcloud = True
 show_pointcloud = False
 plot_occ_hist = True
@@ -189,7 +189,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_occ(maps[1].grid, i, occ_folders[1])
 
         if plot_power_profile:
-            Visualise.plot_power_profile(powe.p_optis[i], i, power_profile_folder)
+            Visualise.plot_power_profile(powe.p_optimal, powe.p_optimal, i, power_profile_folder)
 
         print(f"sample {i} complete\n")
 

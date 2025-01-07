@@ -689,7 +689,7 @@ class Visualise:
         print(f"Average Total Occurrence histogram saved as '{plot_filename}'.")
 
     @staticmethod
-    def plot_power_profile(variable_power, i, output_folder):
+    def plot_power_profile(constant_power, variable_power, i, output_folder):
         """
         Visualizes the power profile as a histogram for two power profiles.
 
@@ -699,7 +699,6 @@ class Visualise:
         """
         # Number of cones
         num_cones = len(variable_power)
-        constant_power = [64] * num_cones
         
         # Calculate cone angles dynamically
         cone_labels = [f"{j * 360 // num_cones}-{(j + 1) * 360 // num_cones}°" for j in range(num_cones)]
