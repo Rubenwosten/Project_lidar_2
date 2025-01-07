@@ -44,6 +44,7 @@ class subsample():
         self.removed = None
         self.lidarpoint = None
         self.subsamp = None
+        self.verschil = []
 
 
       
@@ -58,7 +59,6 @@ class subsample():
             self.removed = []
             self.count = 0
             self.count_new = 0
-            self.verschil = None
             info = self.nusc.get('sample', self._sample)
             info = self.nusc.get('sample_data', info['data']['LIDAR_TOP'])
             
@@ -90,7 +90,7 @@ class subsample():
                                 self.count_new +=1
                             else: self.removed.append((self.lidarpoint[i]))
                 else: self.count+=1
-            self.verschil =len(self.lidarpoint) - len(self.subsamp)
+            self.verschil.append(len(self.lidarpoint) - len(self.subsamp))
             print(f'Amount of lidar points in the subsample {len(self.subsamp)}')
             print(f'Amount of lidar points in the bin file {len(self.lidarpoint)}')
 
