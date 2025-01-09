@@ -164,6 +164,13 @@ class Map:
                 rec[layer][record] = info
         return rec
     
+    def get_global_max_timestep(self, i):
+        max_total = np.max(np.array(self.grid.get_total_risk_matrix(i)))
+        max_static = np.max(np.array(self.grid.get_static_risk_matrix()))
+        max_detect = np.max(np.array(self.grid.get_detect_risk_matrix(i)))
+        max_track = np.max(np.array(self.grid.get_track_risk_matrix(i)))
+        return (max_total, max_static, max_detect, max_track)
+
     def get_global_max(self):
         """
         Finds the global maximum values for total, static, detect, and track risks in the map.

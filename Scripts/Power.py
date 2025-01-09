@@ -5,13 +5,13 @@ from scipy.optimize import minimize
 #lidar_parameters:
 erx = 0.9 # receiver optics effeciency
 etx = 0.9 # emmitter optics effeciency
-n = 1 #target reflectivity
+n = 0.1 #target reflectivity
 D = 25*pow(10,-3) #diameter lens 25 mm
 Aovx = 1/np.pi #1 graden in radialen
 Aovy = 1/np.pi #1 graden in radialen
-phi_amb = 13.27 #W/m^2 gekozen via tabel want test wast delta labda = 50 nm
+phi_amb = 37.72 #W/m^2 gekozen via tabel want test wast delta labda = 50 nm
 Nshots = 1
-Ro = 0.9 #We kiezen een ADP lidar met een golflengte van 1550 nm
+Ro = 0.9 #We kiezen een ADP lidar met een golflengte van 903 nm
 M = 30
 F = 7
 Bn = 1* 10**6 #Bandwidth 1 MHz
@@ -22,10 +22,12 @@ T =293 #20 graden celsius in K
 Kb = 1.380649*10**-23 # boltzmann constant
 e = 1.602*10**-19 # elementaire lading
 P_false = 10**-4 # false trigger mochten klein zetten
+freq = 16.6667
+T =1/freq
 
 
 class power:
-    def __init__(self, map, n, max_power, sub, filt):
+    def __init__(self, map, n, max_power, power_procent, sub, filt, constant_power):
         self.map = map
         self.reso = map.grid.res
         self.n_cones = n
@@ -36,34 +38,41 @@ class power:
         self.p_max= max_power
         self.oud = None
         self.sub = sub
+        self.power_procent = power_procent
         self.filt = filt
+        self.constant_power = constant_power
+        self.p_optis = []
 
             
 
     def update(self, sample, sample_index, scene_id):
         self._sample = sample 
         self._sampleindex = sample_index
-        cells = self.map.grid.circle_of_interrest(self.max_range,self.ego[self._sampleindex])
-        cones = self.assign_cell_to_cone(cells)
-        total_risk = 0
-        total_risk_per_cone = np.zeros(self.n_cones)
-        for cone_id, cone_cells in cones.items():
-            for cell,distance in cone_cells:
-                risk_cell = cell.total_risk[self._sampleindex]
+        if self.constant_power == True:
+            self.p_optimal = [self.power_procent*self.p_max]*self.n_cones
+        else:    
+            cells = self.map.grid.circle_of_interrest(self.max_range,self.ego[self._sampleindex])
+            cones = self.assign_cell_to_cone(cells)
+            total_risk = 0
+            total_risk_per_cone = np.zeros(self.n_cones)
+            for cone_id, cone_cells in cones.items():
+                for cell,distance in cone_cells:
+                    risk_cell = cell.total_risk[self._sampleindex]
 
-                total_risk+=risk_cell
-                total_risk_per_cone[cone_id] +=risk_cell
-        p = np.zeros(self.n_cones)
-        p_intial = np.zeros(self.n_cones)
-        for cone, cone_cells in cones.items():
-            p_intial[cone] = total_risk_per_cone[cone]*self.p_max/total_risk
-        power_bound = [(10,30)]*self.n_cones
-        constraints = {"type": "eq", "fun": self.power_sum_constraint}
-        result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
-        self.p_optimal = result.x
+                    total_risk+=risk_cell
+                    total_risk_per_cone[cone_id] +=risk_cell
+            p = np.zeros(self.n_cones)
+            p_intial = np.zeros(self.n_cones)
+            for cone, cone_cells in cones.items():
+                p_intial[cone] = total_risk_per_cone[cone]*self.p_max/total_risk
+            power_bound = [(16,self.p_max)]*self.n_cones
+            constraints = {"type": "eq", "fun": self.power_sum_constraint}
+            result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
+            self.p_optimal = result.x
+            self.p_optis.append(self.p_optimal)
+            print(f'power profile of it {sample_index}: {self.p_optimal}')
 
         power_opti = self.p_optimal
-        #print(power_opti)
 
         self.sub.update(sample, sample_index, scene_id, power_opti)
 
@@ -91,6 +100,8 @@ class power:
         x = cell.x
         y = cell.y
         angle = math.degrees(math.atan2((y-ego_pos[1]),(x-ego_pos[0])))
+        if angle < 0:
+            angle+=360
         distance = math.sqrt((y-ego_pos[1])**2 + (x-ego_pos[0])**2)
         return angle, distance
     
@@ -129,4 +140,4 @@ class power:
                 total_cost+= (1-prob)*risk
         return total_cost
     def power_sum_constraint(self,power):
-        return np.sum(power) - self.p_max
+        return np.sum(power*T/self.n_cones) - self.power_procent*self.p_max*T

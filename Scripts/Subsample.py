@@ -5,7 +5,7 @@ import math
 
 erx = 0.9 # receiver optics effeciency
 etx = 0.9 # emmitter optics effeciency
-n = 1 #target reflectivity
+n = 0.1 #target reflectivity
 D = 25*pow(10,-3) #diameter lens 25 mm
 Aovx = 1/np.pi #1 graden in radialen
 Aovy = 1/np.pi #1 graden in radialen
@@ -39,6 +39,13 @@ class subsample():
         self._scene_id = None
         self.count = None
         self.count_new = None
+        self.ego = map.ego_positions
+        self._sampleindex = None
+        self.removed = None
+        self.lidarpoint = None
+        self.subsamp = None
+        self.verschil = []
+
 
       
     def update(self, sample, sample_index, scene_id, power):
@@ -49,6 +56,7 @@ class subsample():
         if self._sample != self.oud: # alleen runnen als sample veranderd
             self.lidarpoint = []
             self.subsamp = []
+            self.removed = []
             self.count = 0
             self.count_new = 0
             info = self.nusc.get('sample', self._sample)
@@ -80,7 +88,11 @@ class subsample():
                             if pro >= 0.9:
                                 self.subsamp.append((self.lidarpoint[i]))
                                 self.count_new +=1
+                            else: self.removed.append((self.lidarpoint[i]))
                 else: self.count+=1
+            self.verschil.append(len(self.lidarpoint) - len(self.subsamp))
+            print(f'Amount of lidar points in the subsample {len(self.subsamp)}')
+            print(f'Amount of lidar points in the bin file {len(self.lidarpoint)}')
 
 
 
@@ -117,7 +129,7 @@ class subsample():
                     xy_rot = np.dot(rot_1, xy_rot_2)
                     
                     ring_index = np.frombuffer(number,dtype=np.float32)[0]
-                    self.lidarpoint.append((xy_rot[0],xy_rot[1],z,intensity,ring_index))
+                    self.lidarpoint.append((xy_rot[0]+self.ego[self._sampleindex][0],xy_rot[1]+self.ego[self._sampleindex][1],z,intensity,ring_index))
                     self.lidar_punt += 1
                     number = f.read(4)
                 else:
@@ -126,7 +138,7 @@ class subsample():
 
     def a_d (self, x, y, z):
         angle = math.degrees(math.atan2((y),(x)))
-        distance = math.sqrt((y)**2 + (x)**2 + (z-car_height)**2)
+        distance = math.sqrt((y-self.ego[self._sampleindex][1])**2 + (x-self.ego[self._sampleindex][0])**2 + (z-car_height)**2)
         return angle, distance
     
     def cones (self):
