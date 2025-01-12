@@ -390,7 +390,7 @@ class Visualise:
         print(f"Point cloud scatter plot for sample {iteration} saved as '{plot_filename}'.")
 
     @staticmethod
-    def show_lidar_pointcloud_2d(pointcloud, i, grid):
+    def show_lidar_pointcloud_2d(pointcloud, i, grid, overlay=False):
 
         fig, ax = plt.subplots(figsize=(10, 10))
 
@@ -403,6 +403,21 @@ class Visualise:
         #y_coords = [point[1] for point in pointcloud]
         # Scatter plot of the 3D point cloud
         ax.scatter(x_coords, y_coords, c='black', s=1, marker='.')
+
+        if overlay:
+            # Get the layer matrix from the grid and plot it as the background
+            layer_matrix = np.transpose(grid.get_layer_matrix())  # Assuming this gives a matrix of layers
+            flattened_layers = [layer for row in layer_matrix for layer in row]
+            unique_layers = {layer for layer in flattened_layers if layer}
+
+            # Create the color matrix for the layer grid
+            color_matrix = np.array([
+                [to_rgba(Visualise.layer_colours.get(layer, 'white')) for layer in row]
+                for row in layer_matrix
+            ])
+
+            # Display the layer grid as the background
+            plt.imshow(color_matrix, origin='lower', extent=[0, grid.width, 0, grid.length])
 
         # Setting the labels and title
         ax.set_title(f"2D Point Cloud Sample {i}")

@@ -68,3 +68,34 @@ class Error:
 
     def avg_occ_difference_80_100m(self):
         return self.avg_occ_difference_in_range(80, 100)
+    
+    def save_results_to_file(self, file_path):
+        """
+        Calls all error computation functions and saves their results to a text file at the specified location.
+        """
+        results = [
+            f"Found objects difference: {self.found_objects_difference()}",
+            f"Object severity difference: {self.object_sev_difference()}",
+            f"Total average Occupancy Uncertainty difference: {self.total_avg_occ_difference()}",
+            f"Average Occupancy Uncertainty difference 0-20m: {self.avg_occ_difference_0_20m()}",
+            f"Average Occupancy Uncertainty difference 20-40m: {self.avg_occ_difference_20_40m()}",
+            f"Average Occupancy Uncertainty difference 40-60m: {self.avg_occ_difference_40_60m()}",
+            f"Average Occupancy Uncertainty difference 60-80m: {self.avg_occ_difference_60_80m()}",
+            f"Average Occupancy Uncertainty difference 80-100m: {self.avg_occ_difference_80_100m()}"
+        ]
+
+        with open(file_path, "w") as file:
+            file.write("\n".join(results))
+        
+        print(f"Error results saved as {file_path}")
+
+    def load_results_from_file(self, file_path):
+        """
+        Reads the results from a text file and returns them as a dictionary.
+        """
+        results = {}
+        with open(file_path, "r") as file:
+            for line in file:
+                key, value = line.strip().split(": ", 1)
+                results[key] = float(value)
+        return results

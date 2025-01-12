@@ -78,6 +78,7 @@ class power:
 
         lidar_new = self.sub.subsamp
         count_new = self.sub.count_new
+        removed = self.sub.removed
 
         #print(count_new)
         #print(self.sub.count)
@@ -88,7 +89,7 @@ class power:
         #print(len(objs_scan))
         #print(self.filt.count)
 
-        return lidar_new, objs_scan
+        return lidar_new, objs_scan, removed
 
     def cones (self):
         angle_step = 360 / self.n_cones

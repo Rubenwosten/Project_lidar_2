@@ -47,7 +47,7 @@ procent = 0.5
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
-
+probability_threshold = 0.6 
 
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
@@ -66,10 +66,6 @@ plot_occ = True
 plot_risk = True
 plot_intermediate_risk = True
 plot_power_profile = True
-n_cones = 8
-
-
-p_uniform = [8]*n_cones
 
 
 def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
@@ -143,8 +139,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         Visualise.plot_layers(maps[1].grid, layer_plot_paths[1])
 
     # Initialize risk calculation
-    powe1 = power(maps[0], amount_cones, max_power,procent, subsample(maps[0], amount_cones), object_filter(maps[0]), constant_power = True)
-    powe2 = power(maps[1], amount_cones, max_power,procent, subsample(maps[1], amount_cones), object_filter(maps[1]),  constant_power=False)
+    powe1 = power(maps[0], amount_cones, max_power,procent, subsample(maps[0], amount_cones, probability_threshold), object_filter(maps[0]), constant_power = True)
+    powe2 = power(maps[1], amount_cones, max_power,procent, subsample(maps[1], amount_cones, probability_threshold), object_filter(maps[1]),  constant_power=False)
 
     # Initialize components for risk calculation, object tracking, and detection
     risk = Risk(risk_weights)
@@ -172,8 +168,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if run_power:
             print('Updating power profile')
             # update the power profile for the next sample
-            lidar_new_const, objs_scan_const = powe1.update(sample=sample, sample_index=i, scene_id=scene_id)
-            lidar_new_var, objs_scan_var = powe2.update(sample=sample, sample_index=i, scene_id=scene_id)
+            lidar_new_const, objs_scan_const, lidar_removed_cons = powe1.update(sample=sample, sample_index=i, scene_id=scene_id)
+            lidar_new_var, objs_scan_var, lidar_removed_var = powe2.update(sample=sample, sample_index=i, scene_id=scene_id)
 
             sample_oud = sample
             sample_index_oud = i
@@ -200,8 +196,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if plot_power_profile:
             Visualise.plot_power_profile(powe1.p_optimal, powe2.p_optimal, i, power_profile_folder)
 
-        if i == 2:
-            return
         print(f"sample {i} complete\n")
 
     # Retrieve global maxima for visualization scaling
