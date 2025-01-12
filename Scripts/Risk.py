@@ -41,6 +41,15 @@ class Risk:
                 for cell in cells:
                     cell.total_risk[i] /= max_total
 
+        # Retrieve global maxima for visualization scaling
+        maxs_cons = maps[0].get_global_max_timestep(i)
+        maxs_var = maps[1].get_global_max_timestep(i)
+
+        # Calculate the biggest maxima across both simulations
+        maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
+        max_total, max_static, max_detect, max_track = [value if value > 0 else 1 for value in maxs]
+        print(f'maxs = {(max_total, max_static, max_detect, max_track)}')
+
 
 
     def normalise_and_calc_risks(self, map, maxs):

@@ -52,7 +52,7 @@ class Map:
         self.rec = self.get_records_in_patch(self.patch)
 
     def update(self, i, weights):
-        self.grid.calc_avg_vars(rang=self.range, ego=self.ego_positions[i], i=i, weights=weights)
+        self.grid.update(rang=self.range, ego=self.ego_positions, i=i, weights=weights)
 
     def get_scene(self, index):
         #sample array
@@ -149,6 +149,10 @@ class Map:
             shutil.copy(filename_cons, filename_var)
             print(f"File copied to '{filename_var}'.")
             maps[1].load_grid(filename_var)
+        
+        maps[0].grid.create_non_empty_grid()
+        maps[1].grid.create_non_empty_grid()
+
 
 
     # this function getsall the records within the patch of the map

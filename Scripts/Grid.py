@@ -61,12 +61,59 @@ class Grid:
 
         return layer_counts
     
-    def calc_avg_vars(self, rang, ego, i, weights):
-        self.cells_off_interest = self.circle_of_interrest(rang, ego)
+    def create_non_empty_grid(self):
+        self.non_empty_grid = []
+        for cells in self.grid:
+            for cell in cells:
+                if cell.layer != 'empty':
+                    self.non_empty_grid.append(cell)
+    
+    def update(self, rang, ego, i, weights):
+        self.cells_off_interest = self.circle_of_interrest(rang, ego[i])
 
         self.cells_off_interest = [cell for cell in self.cells_off_interest if cell.layer != 'empty']
         num_nonempty_cells = len(self.cells_off_interest)
 
+        self.ETA_calcs(i, ego)
+        self.calc_avg_vars(num_nonempty_cells, i, weights, ego[i])
+
+        
+    def ETA_calcs(self, i, ego):
+        # Calculate velocity
+        v = self.calc_v(i, ego)
+        distance_eta_3 = 3 * v
+
+        # Separate cells into those inside and outside the circle of interest
+        cells_in_circle = self.cells_off_interest
+        cells_outside_circle = [cell for row in self.grid for cell in row if cell not in cells_in_circle and cell.layer != 'empty']
+
+        # Handle cells outside the circle of interest: Directly assign risk_eta = 0.5
+        for cell in cells_outside_circle:
+            cell.ETA_weight = 0.5
+            cell.detect_risk[i] *= 0.5
+            cell.track_risk[i] *= 0.5
+            cell.static_risk = cell.unchanged_static_risk * 0.5
+
+        # Handle cells inside the circle of interest
+        for cell in cells_in_circle:
+            d = np.sqrt((ego[i][0] - cell.x) ** 2 + (ego[i][1] - cell.y) ** 2)
+            if d >= distance_eta_3:
+                cell.ETA_weight = 0.5
+            else:
+                eta = d / v
+                cell.ETA_weight = 0.0667 * eta**3 - 0.3 * eta**2 + 0.0333 * eta + 1
+            cell.detect_risk[i] *= cell.ETA_weight
+            cell.track_risk[i] *= cell.ETA_weight
+            cell.static_risk = cell.unchanged_static_risk * cell.ETA_weight
+    
+    def calc_v(self, i, ego):
+        if i == 0:
+            v = np.sqrt((ego[1][0]-ego[0][0])**2+(ego[1][1]-ego[0][1])**2)/0.5
+        else:
+            v = np.sqrt((ego[i][0]-ego[i-1][0])**2+(ego[i][1]-ego[i-1][1])**2)/0.5
+        return v
+    
+    def calc_avg_vars(self, num_nonempty_cells, i, weights, ego):
         # reset the variables 
         self.avg_total_risk[i] = 0
         self.avg_static_risk[i] = 0
@@ -112,21 +159,25 @@ class Grid:
         self.avg_tracking_risk[i] /= num_nonempty_cells
         self.avg_total_risk[i] = w_static * self.avg_static_risk[i] + w_detect * self.avg_detection_risk[i] + w_track * self.avg_tracking_risk[i]
         
-        
+
     def circle_of_interrest(self, range, ego):
+        if range == 0: 
+            return []
         circle_interrest = []
-        for row in self.grid:
-            for cell in row:
-                x= cell.x
-                y= cell.y
-                distance = (y-ego[1])**2 + (x-ego[0])**2
-                # use quared distance to negate the computationally heavy sqrt function
-                if distance < (range**2):
-                    circle_interrest.append(cell)
+        for cell in self.non_empty_grid:
+            x= cell.x
+            y= cell.y
+            distance = (y-ego[1])**2 + (x-ego[0])**2
+            # use quared distance to negate the computationally heavy sqrt function
+            if distance < (range**2):
+                circle_interrest.append(cell)
         return circle_interrest
     
     def get_layer_matrix(self):
         return [[cell.layer for cell in row] for row in self.grid]
+    
+    def get_eta_weight_matrix(self):
+        return [[cell.ETA_weight for cell in row] for row in self.grid]
     
     def get_total_risk_matrix(self, i):
         return [[cell.total_risk[i] for cell in row] for row in self.grid]

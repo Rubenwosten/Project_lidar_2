@@ -118,7 +118,7 @@ class Visualise:
         cbar.set_label('Occurrence Value')
 
         # Add title and adjust layout
-        plt.title(f"Occurrence at iteration {i}")
+        plt.title(f"Occurrence at sample {i}")
         plt.tight_layout()
         # plt.show()
 
@@ -348,8 +348,8 @@ class Visualise:
             plt.imshow(color_matrix, origin='lower', extent=[0, grid.width, 0, grid.length])
 
         plt.scatter(
-            [point[0] for point in pointcloud],  # X-coordinates
-            [point[1] for point in pointcloud],  # Y-coordinates
+            [((point[0]-x_min)/grid.res) for point in pointcloud],  # X-coordinates
+            [((point[1]-y_min)/grid.res) for point in pointcloud],  # Y-coordinates
             c='black', s=1, marker='.'  # Black points, small size, dot marker
         )
 
@@ -390,14 +390,17 @@ class Visualise:
         print(f"Point cloud scatter plot for sample {iteration} saved as '{plot_filename}'.")
 
     @staticmethod
-    def show_lidar_pointcloud_2d(pointcloud, i):
+    def show_lidar_pointcloud_2d(pointcloud, i, grid):
 
         fig, ax = plt.subplots(figsize=(10, 10))
 
+        x_min, x_max , y_min, y_max = grid.patch
         # Extract X, Y, Z coordinates from the point cloud
-        x_coords = [point[0] for point in pointcloud]
-        y_coords = [point[1] for point in pointcloud]
+        x_coords = [(point[0]-x_min)/grid.res for point in pointcloud]
+        y_coords = [(point[1]-y_min)/grid.res for point in pointcloud]
 
+        #x_coords = [point[0] for point in pointcloud]
+        #y_coords = [point[1] for point in pointcloud]
         # Scatter plot of the 3D point cloud
         ax.scatter(x_coords, y_coords, c='black', s=1, marker='.')
 
@@ -407,21 +410,27 @@ class Visualise:
         ax.set_ylabel("Y (Global Coordinates)")
 
         lim = 10
-        ax.set_xlim(-lim,lim)
-        ax.set_ylim(-lim,lim)
+        #ax.set_xlim(-lim,lim)
+        #ax.set_ylim(-lim,lim)
         plt.show()
 
 
     @staticmethod
-    def show_lidar_pointcloud_3d(pointcloud, i):
+    def show_lidar_pointcloud_3d(pointcloud, i, grid):
 
         fig = plt.figure(figsize=(10, 10))
         ax = fig.add_subplot(111, projection='3d')
 
+        x_min, x_max , y_min, y_max = grid.patch
         # Extract X, Y, Z coordinates from the point cloud
-        x_coords = [point[0] for point in pointcloud]
-        y_coords = [point[1] for point in pointcloud]
-        z_coords = [point[2] for point in pointcloud]
+        x_coords = [(point[0]-x_min)/grid.res for point in pointcloud]
+        y_coords = [(point[1]-y_min)/grid.res for point in pointcloud]
+        z_coords = [(point[2]-0)/grid.res for point in pointcloud]
+
+
+        #x_coords = [point[0] for point in pointcloud]
+        #y_coords = [point[1] for point in pointcloud]
+        #z_coords = [point[2] for point in pointcloud]
 
         # Scatter plot of the 3D point cloud
         ax.scatter(x_coords, y_coords, z_coords, c='black', s=1, marker='.')
@@ -433,8 +442,8 @@ class Visualise:
         ax.set_zlabel("Z (Global Coordinates)")
 
         lim = 10
-        ax.set_xlim(-lim,lim)
-        ax.set_ylim(-lim,lim)
+        #ax.set_xlim(-lim,lim)
+        #ax.set_ylim(-lim,lim)
         plt.show()
     
     @staticmethod
@@ -558,7 +567,7 @@ class Visualise:
         plt.plot(occ_constant, label="Constant Power", color="red", linestyle='--', linewidth=2)
 
         # Add title and labels
-        plt.title('Average Occurrence')
+        plt.title('Average Occupany Uncertainty')
         plt.xlabel("Sample")
         plt.ylim(0, 1)
 
@@ -573,7 +582,7 @@ class Visualise:
         plt.savefig(plot_filename)
         plt.close()
 
-        print(f"Average Occurrence plot saved as '{plot_filename}'.")
+        print(f"Average Occupany Uncertainty plot saved as '{plot_filename}'.")
 
 
     @staticmethod
@@ -620,8 +629,8 @@ class Visualise:
         plt.bar(range_labels, occ_values, color='blue', alpha=0.7)
         plt.ylim(0,1)
         plt.xlabel("Range (meters)")
-        plt.ylabel("Average Occurrence per Cell")
-        plt.title(f"Average Occurrence per Cell Histogram for Sample {timestep}")
+        plt.ylabel("Average Occupany Uncertainty per Cell")
+        plt.title(f"Average Occupany Uncertainty per Cell Histogram for Sample {timestep}")
         plt.xticks(rotation=45)
         plt.tight_layout()
         
@@ -629,7 +638,7 @@ class Visualise:
         plot_filename = os.path.join(output_folder, f"occ_hist_it_{timestep}.png")
         plt.savefig(plot_filename)
         plt.close()
-        print(f"Occurrence histogram sample {timestep} saved as '{plot_filename}'.")
+        print(f"Occupany Uncertainty histogram sample {timestep} saved as '{plot_filename}'.")
 
     @staticmethod
     def plot_avg_occ_histogram(maps, output_folder):
@@ -673,8 +682,8 @@ class Visualise:
         # Add labels and title
         plt.ylim(0, 1)
         plt.xlabel("Range (meters)")
-        plt.ylabel("Average Occurrence per Cell")
-        plt.title(f"Average Occurrence per Cell Histogram")
+        plt.ylabel("Average Occupany Uncertainty per Cell")
+        plt.title(f"Average Occupany Uncertainty per Cell Histogram")
         plt.xticks(x_positions_constant + bar_width / 2, range_labels_constant, rotation=45)  # Center the labels between the bars
         plt.tight_layout()
 
@@ -686,7 +695,7 @@ class Visualise:
         plt.savefig(plot_filename)
         plt.close()
 
-        print(f"Average Total Occurrence histogram saved as '{plot_filename}'.")
+        print(f"Average Total Occupany Uncertainty histogram saved as '{plot_filename}'.")
 
     @staticmethod
     def plot_power_profile(constant_power, variable_power, i, output_folder):
@@ -740,10 +749,10 @@ class Visualise:
         plt.figure(figsize=(12, 8))
 
         # Plot removed lidar points for Simulation 1
-        plt.plot(rem_points_cons, label="Simulation 1", color="blue", linewidth=2)
+        plt.plot(rem_points_cons, label="Constant Power", color="blue", linewidth=2)
 
         # Plot removed lidar points for Simulation 2
-        plt.plot(rem_points_var, label="Simulation 2", color="red", linewidth=2)
+        plt.plot(rem_points_var, label="Variable Power", color="red", linewidth=2)
 
         # Plot the difference
         plt.plot(difference, label="Difference", color="green", linestyle=':', linewidth=2)
@@ -765,3 +774,68 @@ class Visualise:
         plt.close()
 
         print(f"Removed Lidar Points plot saved as '{plot_filename}'.")
+
+    @staticmethod
+    def show_eta_weights(grid, i):
+        """
+        Visualizes the grid's ETA weights.
+
+        Displays the grid's ETA weight data, masking cells with the 'empty' layer 
+        and scaling the weights between 0.5 and 1 (plot limits 0 to 1).
+        """
+
+        # Get the ETA weight matrix for the given iteration
+        eta_weight_matrix = np.transpose(grid.get_eta_weight_matrix())
+        layer_matrix = np.transpose(grid.get_layer_matrix())
+
+        # Create a mask for 'empty' cells
+        mask = (layer_matrix == 'empty')
+
+        # Prepare a colormap for ETA weights (excluding 'empty' cells)
+        cmap = plt.cm.viridis
+        norm = Normalize(vmin=0, vmax=1)  # Normalize weights for the plot
+
+        # Create the plot
+        plt.figure(figsize=(10, 8))
+
+        # Plot the ETA weight matrix, masking 'empty' cells
+        im = plt.imshow(
+            np.ma.masked_where(mask, eta_weight_matrix), 
+            origin='lower', 
+            cmap=cmap, 
+            norm=norm
+        )
+
+        # Overlay 'empty' cells as white
+        plt.imshow(
+            np.where(mask, 1, np.nan),  # Masked cells get 1, others are NaN
+            origin='lower', 
+            cmap=ListedColormap(['white']), 
+            interpolation='none'
+        )
+
+        # Add colorbar for the ETA weights
+        cbar = plt.colorbar(im)
+        cbar.set_label('ETA Weight')
+
+        # Add title and adjust layout
+        plt.title(f"ETA Weights at Sample {i}")
+        plt.tight_layout()
+        plt.show()
+
+
+    @staticmethod
+    def plot_eta_weights(grid, i, output_folder):
+        """
+        Saves a plot of the grid's ETA weights to the specified folder.
+
+        Parameters:
+        - grid: The grid object containing ETA weight data.
+        - i: The current iteration index.
+        - output_folder: Path to the folder where the plot will be saved.
+        """
+        eta_weight_plot_filename = os.path.join(output_folder, f"eta_weight_plot_iter_{i}.png")
+        Visualise.show_eta_weights(grid, i)
+        plt.savefig(eta_weight_plot_filename)
+        plt.close()
+        print(f"ETA weight plot for iteration {i} saved as '{eta_weight_plot_filename}'.")

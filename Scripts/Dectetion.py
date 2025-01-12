@@ -86,6 +86,8 @@ class Detect:
                     
                     xy = np.array([x, y]).reshape(-1, 1)
 
+                    if quo == 1:
+                        print(f'x = {x}\ty = {y}\tz = {z}')
                     self.lidarpoint2d.append((x, y))
                     self.lidarpointV2.append((x, y, z))
 
@@ -156,12 +158,15 @@ class Detect:
                         # For subsequent indices, use the occurrence from the previous index
                         occ = cell.occ[self._sampleindex - 1]
                     
-                    # Add the standard occurrence accumulation
-                    occ += self.map.OCC_ACCUM
-                    
-                    # Decay the occurrence based on lidar points and clamp it between 0 and 1
-                    occ = max(0, min(occ - self.map.LIDAR_DECAY * lidar_punten, 1))
-                    
+                    if lidar_punten > 0:
+                        # Decay the occurrence based on lidar points and 
+                        occ -= self.map.LIDAR_DECAY * lidar_punten
+                    else:
+                        # Add the standard occurrence accumulation
+                        occ += self.map.OCC_ACCUM
+
+                    # clamp occ between 0 and 1
+                    occ = max(0, min(occ, 1))
                     # Update the occurrence value for the current sample index in the cell
                     cell.occ[self._sampleindex] = occ
 

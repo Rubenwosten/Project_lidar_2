@@ -18,6 +18,7 @@ from Dectetion import Detect
 from Power import power
 from Subsample import subsample
 from Object_filter import object_filter
+from Error import Error
 
 import warnings
 from shapely.errors import ShapelyDeprecationWarning
@@ -30,9 +31,9 @@ from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion import arcline_path_utils
 from nuscenes.map_expansion.bitmap import BitMap
 
-dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+#dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
-#dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
+dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
 map_name = 'boston-seaport'  #'singapore-onenorth'
 map_short = 'Boston'
@@ -42,7 +43,7 @@ map_height = 2118.1
 
 amount_cones = 8
 max_power = 64 # watt
-procent = 0.75
+procent = 0.5
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
@@ -57,14 +58,14 @@ run_detect = True
 run_obj = True
 run_power = True
 
-plot_layers = True
+plot_layers = False
 plot_pointcloud = True
 show_pointcloud = False
 plot_occ_hist = True
 plot_occ = True
 plot_risk = True
 plot_intermediate_risk = True
-plot_power_profile = False
+plot_power_profile = True
 n_cones = 8
 
 
@@ -176,12 +177,17 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
             sample_oud = sample
             sample_index_oud = i
+
+        # calculate avg vars and ETA weights
+        maps[0].update(i=i, weights=risk_weights)  # Update grid with calculated weights
+        maps[1].update(i=i, weights=risk_weights)  # Update grid with calculated weights
+
         # Save point cloud plots for each sample
         if plot_pointcloud:
-            Visualise.save_pointcloud_scatterplot(maps[0], decs[0].lidarpoint, i, pointclouds_folders[0], overlay=False)
-            Visualise.save_pointcloud_scatterplot(maps[0], decs[0].lidarpoint, i, pointclouds_overlay_folders[0], overlay=True)
-            Visualise.save_pointcloud_scatterplot(maps[1], decs[1].lidarpoint, i, pointclouds_folders[1], overlay=False)
-            Visualise.save_pointcloud_scatterplot(maps[1], decs[1].lidarpoint, i, pointclouds_overlay_folders[1], overlay=True)
+            Visualise.save_pointcloud_scatterplot(maps[0], lidar_new_const, i, pointclouds_folders[0], overlay=False)
+            Visualise.save_pointcloud_scatterplot(maps[0], lidar_new_const, i, pointclouds_overlay_folders[0], overlay=True)
+            Visualise.save_pointcloud_scatterplot(maps[1], lidar_new_var, i, pointclouds_folders[1], overlay=False)
+            Visualise.save_pointcloud_scatterplot(maps[1], lidar_new_var, i, pointclouds_overlay_folders[1], overlay=True)
 
         if plot_intermediate_risk:
             Visualise.plot_risks(maps[0].grid, i, risk_plots_folders[0])
@@ -194,6 +200,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if plot_power_profile:
             Visualise.plot_power_profile(powe1.p_optimal, powe2.p_optimal, i, power_profile_folder)
 
+        if i == 2:
+            return
         print(f"sample {i} complete\n")
 
     # Retrieve global maxima for visualization scaling
@@ -217,8 +225,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
     # Update map grid with risk and object metrics, and generate plots for each sample
     for i in range(len(maps[0].samples)):
-        maps[0].update(i=i, weights=risk_weights)  # Update grid with calculated weights
-        maps[1].update(i=i, weights=risk_weights)  # Update grid with calculated weights
 
         if plot_risk:
             Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
@@ -239,9 +245,19 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     Visualise.plot_avg_risks(maps, comparison_folder)
     Visualise.plot_avg_occ(maps, comparison_folder)
     Visualise.plot_total_var(maps[0].grid.total_obj, maps[1].grid.total_obj, 'Total Objects', comparison_folder)
-    Visualise.plot_total_var(maps[0].grid.total_obj_sev, maps[1].grid.total_obj, 'Total Object severity', comparison_folder)
+    Visualise.plot_total_var(maps[0].grid.total_obj_sev, maps[1].grid.total_obj_sev, 'Total Object severity', comparison_folder)
     Visualise.plot_removed_pointcount(powe1.sub.verschil, powe2.sub.verschil, comparison_folder)
     Visualise.plot_avg_occ_histogram(maps, comparison_folder)
+
+    error = Error(maps)
+    print("Found objects difference:", error.found_objects_difference())
+    print("Object severity difference:", error.object_sev_difference())
+    print("Total average Occupany Uncertainty difference:", error.total_avg_occ_difference())
+    print("Average Occupany Uncertainty difference 0-20m:", error.avg_occ_difference_0_20m())
+    print("Average Occupany Uncertainty difference 20-40m:", error.avg_occ_difference_20_40m())
+    print("Average Occupany Uncertainty difference 40-60m:", error.avg_occ_difference_40_60m())
+    print("Average Occupany Uncertainty difference 60-80m:", error.avg_occ_difference_60_80m())
+    print("Average Occupany Uncertainty difference 80-100m:", error.avg_occ_difference_80_100m())
 
     Visualise.create_gif_from_folder(power_profile_folder, os.path.join(power_profile_folder, 'power_profile.gif'))
     # Generate summary plots for the simulation
