@@ -82,7 +82,6 @@ class Visualise:
         Displays the grid's occurrence data, plotting cells with the 'empty' layer as white 
         and others based on their occurrence value.
         """
-
         # Get the occurrence matrix for the given iteration
         occ_matrix = np.transpose(grid.get_occ_matrix(i))
         layer_matrix = np.transpose(grid.get_layer_matrix())

@@ -19,8 +19,6 @@ class Detect:
         self.ego = self.map.ego_positions
         self.reso = map.grid.res
         self.lidarpoint = []
-        self.lidarpoint2d = []
-        self.lidarpointV2 = []
         self.width = self.map.grid.width
         self.length = self.map.grid.length
         self.constant_power = constant_power
@@ -41,18 +39,12 @@ class Detect:
         
         if self._sample != self.oud: # alleen runnen als sample veranderd
             self.lidarpoint = []
-            self.lidarpoint2d = []
-            self.lidarpointV2 = []
 
             self.lidarpoint = lidar_new
             self.lidar_naar_cell()
                     
             self.update_occerence()
             self.update_risk()
-            if prnt:
-                print('self.lidarpoint[1] = ', self.lidarpoint[1])
-                print('self.lidarpoint[1][1] = ', self.lidarpoint[1][1])
-                print('self.lidarpoint[1][0] = ', self.lidarpoint[1][0])
             self.oud = self._sample # sample is helemaal gerund dus dit is de stopconditie
             return
         else: 
@@ -86,10 +78,6 @@ class Detect:
                     
                     xy = np.array([x, y]).reshape(-1, 1)
 
-                    if quo == 1:
-                        print(f'x = {x}\ty = {y}\tz = {z}')
-                    self.lidarpoint2d.append((x, y))
-                    self.lidarpointV2.append((x, y, z))
 
                     xy_rotated = np.dot(rot_2, xy)
                     xy_rot_2 = xy_rotated+xy_l
@@ -177,4 +165,4 @@ class Detect:
                     sev = 0
                 else:sev = cell.severity_scores[cell.layer]
                 cell.detect_risk[self._sampleindex] = sev * cell.occ[self._sampleindex]
-             
+                

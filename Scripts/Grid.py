@@ -67,14 +67,18 @@ class Grid:
             for cell in cells:
                 if cell.layer != 'empty':
                     self.non_empty_grid.append(cell)
-    
-    def update(self, rang, ego, i, weights):
+
+    def update_ETA(self, rang, ego, i):
         self.cells_off_interest = self.circle_of_interrest(rang, ego[i])
 
         self.cells_off_interest = [cell for cell in self.cells_off_interest if cell.layer != 'empty']
-        num_nonempty_cells = len(self.cells_off_interest)
 
         self.ETA_calcs(i, ego)
+
+
+    def update_avg_vars(self, ego, i, weights):
+        
+        num_nonempty_cells = len(self.cells_off_interest)
         self.calc_avg_vars(num_nonempty_cells, i, weights, ego[i])
 
         

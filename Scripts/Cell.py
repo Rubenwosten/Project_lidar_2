@@ -121,6 +121,7 @@ class Cell:
         cell.occ = cell_dict['occ']
         cell.total_risk = cell_dict['total risk']
         cell.unchanged_static_risk = cell_dict['unchanged static risk']
+        #cell.unchanged_static_risk = cell_dict['static risk'] # for adding to a old saved dict
         cell.static_risk = cell_dict['static risk']
         cell.detect_risk = cell_dict['detect risk']
         cell.track_risk = cell_dict['track risk']
