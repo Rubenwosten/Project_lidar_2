@@ -8,3 +8,5 @@ Runs/Boston/scene 1 res=0.5 C100% V50%/Constant Power/data
 Runs/Boston/scene 1 res=0.5 C100% V50%/Variable Power/data
 Runs/Boston/scene 1 res=0.5/Constant Power/reinitialized_data.pkl
 Runs/Boston/scene 1 res=0.5/Variable Power/reinitialized_data.pkl
+Runs/Boston/scene 4 res=0.5/Constant Power/reinitialized_data.pkl
+Runs/Boston/scene 4 res=0.5/Variable Power/reinitialized_data.pkl

@@ -1,7 +1,7 @@
 from Grid import Grid
 from Map import Map
 import os
-
+'''
 def reinitialize_with_layers(original_grid):
     """
     Reinitialize a Grid object, retaining only the layers information for each cell.
@@ -71,7 +71,6 @@ run_folder_var = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}",
 run_folders = [run_folder_cons, run_folder_var]
 
 original_grid = maps[0].load_grid(os.path.join(run_folder_cons, "data"))
-
 # Reinitialize while retaining only the layers
 reinitialized_grid = reinitialize_with_layers(original_grid)
 
@@ -80,5 +79,4 @@ maps[0].grid = reinitialized_grid
 maps[1].grid = reinitialized_grid
 maps[0].save_grid(os.path.join(run_folders[0], "reinitialized_data.pkl"))
 maps[1].save_grid(os.path.join(run_folders[1], "reinitialized_data.pkl"))
-
-
+'''
