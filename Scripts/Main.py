@@ -37,6 +37,7 @@ dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
 map_name = 'boston-seaport'  #'singapore-onenorth'
 map_short = 'Boston'
+datafile_name = 'reinitialized_data.pkl'
 
 map_width = 2979.5
 map_height = 2118.1
@@ -113,7 +114,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         os.makedirs(gif_folders[run], exist_ok=True)
 
         # Paths for data and specific plots
-        scene_data_paths.append(os.path.join(run_folder, "reinitialized_data.pkl"))
+        scene_data_paths.append(os.path.join(run_folder, datafile_name))
         layer_plot_paths.append(os.path.join(plots_folders[run], "layers.png"))
 
         # Subdirectories for specific plot types
