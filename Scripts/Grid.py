@@ -186,6 +186,9 @@ class Grid:
     def get_total_risk_matrix(self, i):
         return [[cell.total_risk[i] for cell in row] for row in self.grid]
     
+    def get_unchanged_static_risk_matrix(self):
+        return [[cell.unchanged_static_risk for cell in row] for row in self.grid]
+    
     def get_static_risk_matrix(self):
         return [[cell.static_risk for cell in row] for row in self.grid]
     

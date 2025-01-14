@@ -185,6 +185,33 @@ class Visualise:
         print(f"Risk plot for sample {index} saved as '{risk_plot_filename}'.")
     
     @staticmethod
+    def show_risk(risk_matrix, title):
+        # Define the figure
+        risk_matrix = np.transpose(risk_matrix)
+        fig, ax = plt.subplots(figsize=(12, 10))  # Create a figure and axis
+
+        # Display the risk matrix using imshow
+        im = ax.imshow(
+            risk_matrix, 
+            origin='lower', 
+            cmap='viridis', 
+            norm=Normalize(vmin=np.min(risk_matrix), vmax=np.max(risk_matrix))
+        )
+
+        # Set title
+        ax.set_title(title, fontsize=12)
+
+        # Disable gridlines
+        ax.grid(False)
+
+        # Add colorbar
+        cbar = fig.colorbar(ScalarMappable(norm=im.norm, cmap=im.cmap), ax=ax, shrink=0.8)
+        cbar.set_label(title)
+
+        # Show the plot
+        plt.show()
+
+    @staticmethod
     def show_risks_maximised(grid, index, max_total, max_static, max_detect, max_track):
         """
         Displays a 2x2 subplot grid for risk matrices: Total Risk, Static Risk, Detect Risk, and Track Risk.
