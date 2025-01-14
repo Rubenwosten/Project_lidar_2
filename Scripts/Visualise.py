@@ -349,8 +349,6 @@ class Visualise:
         plt.scatter(
             [((point[0]-x_min)/grid.res) for point in pointcloud],  # X-coordinates
             [((point[1]-y_min)/grid.res) for point in pointcloud],  # Y-coordinates
-            [((point[0]-x_min)/grid.res) for point in pointcloud],  # X-coordinates
-            [((point[1]-y_min)/grid.res) for point in pointcloud],  # Y-coordinates
             c='black', s=1, marker='.'  # Black points, small size, dot marker
         )
 
