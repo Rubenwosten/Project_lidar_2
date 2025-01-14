@@ -242,6 +242,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     Visualise.plot_avg_occ(maps, comparison_folder)
     Visualise.plot_total_var(maps[0].grid.total_obj, maps[1].grid.total_obj, 'Total Objects', comparison_folder)
     Visualise.plot_total_var(maps[0].grid.total_obj_sev, maps[1].grid.total_obj_sev, 'Total Object severity', comparison_folder)
+    Visualise.plot_total_var(powe1.t_cost, powe2.t_cost, 'Cost function', comparison_folder)
     Visualise.plot_removed_pointcount(powe1.sub.verschil, powe2.sub.verschil, comparison_folder)
     Visualise.plot_avg_occ_histogram(maps, comparison_folder)
 

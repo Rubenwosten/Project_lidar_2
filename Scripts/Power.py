@@ -150,5 +150,6 @@ class power:
                 total_cost+= (1-prob)*risk
         self.t_cost[self._curr_sample_index] = total_cost
         return total_cost
+    
     def power_sum_constraint(self,power):
         return np.sum(power*T/self.n_cones) - self.power_procent*self.p_max*T
