@@ -24,12 +24,14 @@ class Cell:
         self.layers = layers
         self.layer = 'empty'
         self.total_risk = [0] * scene_length
+        self.unchanged_static_risk = 0
         self.static_risk = 0
         self.detect_risk = [0] * scene_length
         self.track_risk = [0] * scene_length
         self.isscanned = False
         self.ofinterest = 0
         self.lidar_aantal = [0] * scene_length
+        self.ETA_weight = 0.5
 
     def assign_layer(self, prnt = False):
         if(prnt):
@@ -46,18 +48,24 @@ class Cell:
         if(prnt):
             print('The new self.layers variable keys are = {}'.format(self.layers.keys()))
 
+        # set layer variable according to the priority layers
         for layer_name in Cell.priority_layers:
             if layer_name in self.layers:
                 self.layer = layer_name
-                if(self.layer != 'empty'):
-                    self.occ = [1] * len(self.total_risk)
+                self.occ = [1] * len(self.total_risk)
                 break
 
-        # Calculate the static risk as the sum of severity scores for all layers in self.layers
-        self.static_risk = sum(Cell.severity_scores.get(layer, 0) for layer in self.layers)
-
+        self.set_static_risk()
         if(prnt):
             print('The new self.layer variable = {}'.format(self.layer))
+
+    def set_static_risk(self):
+        for layer_name in Cell.priority_layers:
+            if layer_name in self.layers:
+                self.unchanged_static_risk = Cell.severity_scores[layer_name]
+                self.static_risk = self.unchanged_static_risk
+                break
+
 
     def CalcRisk(self, weights):
         """
@@ -83,6 +91,7 @@ class Cell:
             'y': self.y,
             'occ': self.occ,
             'total risk': self.total_risk,
+            'unchanged static risk': self.unchanged_static_risk,
             'static risk': self.static_risk,
             'detect risk': self.detect_risk,
             'track risk': self.track_risk,
@@ -111,6 +120,8 @@ class Cell:
         )
         cell.occ = cell_dict['occ']
         cell.total_risk = cell_dict['total risk']
+        cell.unchanged_static_risk = cell_dict['unchanged static risk']
+        #cell.unchanged_static_risk = cell_dict['static risk'] # for adding to a old saved dict
         cell.static_risk = cell_dict['static risk']
         cell.detect_risk = cell_dict['detect risk']
         cell.track_risk = cell_dict['track risk']

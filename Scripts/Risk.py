@@ -23,6 +23,7 @@ class Risk:
         # Calculate the biggest maxima across both simulations
         maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
         max_total, max_static, max_detect, max_track = [value if value > 0 else 1 for value in maxs]
+        print(f'maxs before norm = {(max_total, max_static, max_detect, max_track)}')
         w_s, w_d, w_t = self.weights
 
         for map in maps:
@@ -42,18 +43,34 @@ class Risk:
                     cell.total_risk[i] /= max_total
 
 
-
-    def normalise_and_calc_risks(self, map, maxs):
+    def normalise_and_calc_risks(self, maps):
         """
         Normalizes risks and calculates total risk per cell using given weights.
         """
+        # Retrieve global maxima for visualization scaling
+        maxs_cons = maps[0].get_global_max()
+        maxs_var = maps[1].get_global_max()
+
+        # Calculate the biggest maxima across both simulations
+        maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
         max_total, max_static, max_detect, max_track = [value if value > 0 else 1 for value in maxs]
         w_s, w_d, w_t = self.weights
+        print(f"maxs before norm = {(max_total, max_static, max_detect, max_track)}")
         
-        for row in map.grid.grid:
-            for cell in row:
-                cell.static_risk /= max_static
-                cell.detect_risk = [detect_risk/max_detect for detect_risk in cell.detect_risk]
-                cell.track_risk = [track_risk/max_track for track_risk in cell.track_risk]
-                for i in range(len(cell.detect_risk)):
-                    cell.total_risk[i] = w_s * cell.static_risk + w_d * cell.detect_risk[i] + w_t * cell.track_risk[i]/max_total
+        for map in maps:
+            for row in map.grid.grid:
+                for cell in row:
+                    cell.static_risk /= max_static
+                    cell.detect_risk = [detect_risk/max_detect for detect_risk in cell.detect_risk]
+                    cell.track_risk = [track_risk/max_track for track_risk in cell.track_risk]
+                    for i in range(len(cell.detect_risk)):
+                        cell.total_risk[i] = w_s * cell.static_risk + w_d * cell.detect_risk[i] + w_t * cell.track_risk[i]/max_total
+        
+        # Retrieve global maxima for visualization scaling
+        maxs_cons = maps[0].get_global_max()
+        maxs_var = maps[1].get_global_max()
+
+        # Calculate the biggest maxima across both simulations
+        maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
+        max_total, max_static, max_detect, max_track = [value if value > 0 else 1 for value in maxs]
+        print(f"maxs after norm = {(max_total, max_static, max_detect, max_track)}")

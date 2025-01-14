@@ -23,48 +23,61 @@ class severity:
               
 
         traffic_participant_f = {       #the dictionary which defines severity factor according to traffic participant
+        
+        "animal":{
+            "score": 0.8,
+            "orientation": 0
+        },
         "human.pedestrian.adult": {
-            "score": 1,       #the factor based on category
-            "orientation": 0            #wether the orientation of the participant is relevant or not
+            "score": 1.0 ,
+            "orientation": 0
         },
         "human.pedestrian.child": {
-            "score": 1,
+            "score": 1.0,
             "orientation": 0
         },
-        "human.pedestrian.constructi": {
-            "score": 1,
+        "human.pedestrian.construction_worker": {
+            "score": 1.0,
             "orientation": 0
         },
-        "human.pedestrian.personal_m": {
-            "score": 1,
+        "human.pedestrian.personal_mobility": {
+            "score": 1.0,
             "orientation": 0
         },
-        "human.pedestrian.police_off": {
-            "score": 1,
+        "human.pedestrian.police_officer": {
+            "score": 1.0,
+            "orientation": 0
+        },
+        "human.pedestrian.stroller": {
+            "score": 1.0,
+            "orientation": 0
+        },
+        "human.pedestrian.wheelchair": {
+            "score": 1.0,
             "orientation": 0
         },
         "movable_object.barrier": {
-            "score": 0.369369369,
+            "score": 0.567460878,
             "orientation": 0
         },
         "movable_object.debris": {
-            "score": 0.36036036,
+            "score": 0.556737013,
             "orientation": 0
         },
         "movable_object.pushable_pullable": {
-            "score": 0.36036036,
+            "score": 0.556737013,
             "orientation": 0
         },
         "movable_object.trafficcone": {
-            "score": 0.36036036,
+            "score": 0.556737013,
             "orientation": 0
         },
         "static_object.bicycle_rack": {
-            "score": 0.522522523,
+            "score": 0.718105015,
             "orientation": 0
         },
         "vehicle.bicycle": {
-            "score": 1,
+            "score": 1.0,
             "orientation": 1
         },
         "vehicle.bus.bendy": {
@@ -76,19 +89,27 @@ class severity:
             "orientation": 1
         },
         "vehicle.car": {
-            "score": 0.810811,
+            "score": 0.908919531,
             "orientation": 1
         },
         "vehicle.construction": {
             "score": 1.0,
             "orientation": 1
         },
+        "vehicle.emergency.ambluance": {
+            "score": 1.0,
+            "orientation": 1
+        },
+        "vehicle.emergency.police": {
+            "score": 1.0,
+            "orientation": 1
+        },
         "vehicle.motorcycle": {
-            "score": 0.765766,
+            "score": 1.0,
             "orientation": 1
         },
         "vehicle.trailer": {
-            "score": 1.318,
+            "score": 1.0,
             "orientation": 1
         },
         "vehicle.truck": {

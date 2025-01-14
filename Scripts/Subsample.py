@@ -25,7 +25,7 @@ P_false = 10**-4 # false trigger mochten klein zetten
 car_height = 1.8
 
 class subsample():
-    def __init__(self, map, n_cones):
+    def __init__(self, map, n_cones, p_thresh):
         self._power = None
         self._sample = None
         self.oud = None
@@ -45,6 +45,7 @@ class subsample():
         self.lidarpoint = None
         self.subsamp = None
         self.verschil = []
+        self.p_thresh = p_thresh
 
 
       
@@ -77,6 +78,7 @@ class subsample():
             cones = self.cones()
             #print (self.lidar_punt)
             #print (cones)
+            # probability filter
             for i in range(self.lidar_punt):
                 a,d = self.a_d(self.lidarpoint[i][0],self.lidarpoint[i][1], self.lidarpoint[i][2])
                 if a < 0:
@@ -85,14 +87,14 @@ class subsample():
                     for j, (start_angle, end_angle) in enumerate(cones):
                         if start_angle <= a < end_angle:
                             pro = self.calc_proba(self._power[j], d)
-                            if pro >= 0.9:
+                            if pro >= self.p_thresh:
                                 self.subsamp.append((self.lidarpoint[i]))
                                 self.count_new +=1
                             else: self.removed.append((self.lidarpoint[i]))
                 else: self.count+=1
-            self.verschil.append(len(self.lidarpoint) - len(self.subsamp))
-            print(f'Amount of lidar points in the subsample {len(self.subsamp)}')
-            print(f'Amount of lidar points in the bin file {len(self.lidarpoint)}')
+                verschil = len(self.lidarpoint) - len(self.subsamp)
+            self.verschil.append(verschil)
+            print(f'Amount of lidar points difference {verschil}')
 
 
 
@@ -129,7 +131,9 @@ class subsample():
                     xy_rot = np.dot(rot_1, xy_rot_2)
                     
                     ring_index = np.frombuffer(number,dtype=np.float32)[0]
-                    self.lidarpoint.append((xy_rot[0]+self.ego[self._sampleindex][0],xy_rot[1]+self.ego[self._sampleindex][1],z,intensity,ring_index))
+                    x_frame = xy_rot[0]+self.ego[self._sampleindex][0]
+                    y_frame = xy_rot[1]+self.ego[self._sampleindex][1]
+                    self.lidarpoint.append((x_frame, y_frame,z,intensity,ring_index))
                     self.lidar_punt += 1
                     number = f.read(4)
                 else:

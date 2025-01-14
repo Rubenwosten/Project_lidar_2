@@ -33,8 +33,8 @@ class power:
         self.n_cones = n
         self.max_range = map.range
         self.ego = self.map.ego_positions
-        self._sampleindex = None
-        self._sample = None
+        self._curr_sample_index = None
+        self._curr_sample = None
         self.p_max= max_power
         self.oud = None
         self.sub = sub
@@ -45,50 +45,57 @@ class power:
 
             
 
-    def update(self, sample, sample_index, scene_id):
-        self._sample = sample 
-        self._sampleindex = sample_index
+    def update(self, curr_sample, curr_sample_index, scene_id):
+        
+        self._curr_sample = curr_sample
+        self._curr_sample_index = curr_sample_index
         if self.constant_power == True:
             self.p_optimal = [self.power_procent*self.p_max]*self.n_cones
         else:    
-            cells = self.map.grid.circle_of_interrest(self.max_range,self.ego[self._sampleindex])
+            cells = self.map.grid.circle_of_interrest(self.max_range,self.ego[self._curr_sample_index])
             cones = self.assign_cell_to_cone(cells)
             total_risk = 0
             total_risk_per_cone = np.zeros(self.n_cones)
             for cone_id, cone_cells in cones.items():
                 for cell,distance in cone_cells:
-                    risk_cell = cell.total_risk[self._sampleindex]
+                    risk_cell = cell.total_risk[self._curr_sample_index]
 
                     total_risk+=risk_cell
                     total_risk_per_cone[cone_id] +=risk_cell
             p = np.zeros(self.n_cones)
             p_intial = np.zeros(self.n_cones)
+
+            #print(f'total_risk = {total_risk}')
             for cone, cone_cells in cones.items():
+                #print(f'total_risk_per_cone = {total_risk_per_cone[cone]}')
                 p_intial[cone] = total_risk_per_cone[cone]*self.p_max/total_risk
+                
             power_bound = [(16,self.p_max)]*self.n_cones
             constraints = {"type": "eq", "fun": self.power_sum_constraint}
             result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
             self.p_optimal = result.x
             self.p_optis.append(self.p_optimal)
-            print(f'power profile of it {sample_index}: {self.p_optimal}')
+            print(f'power profile of it {curr_sample_index}: {self.p_optimal}')
 
         power_opti = self.p_optimal
 
-        self.sub.update(sample, sample_index, scene_id, power_opti)
+        self.sub.update(curr_sample, curr_sample_index + 1, scene_id, power_opti)
+
 
         lidar_new = self.sub.subsamp
         count_new = self.sub.count_new
+        removed = self.sub.removed
 
         #print(count_new)
         #print(self.sub.count)
 
-        self.filt.update(sample, sample_index, lidar_new, count_new)
+        self.filt.update(curr_sample, lidar_new, count_new)
         objs_scan = self.filt.object_scanned
 
         #print(len(objs_scan))
         #print(self.filt.count)
 
-        return lidar_new, objs_scan
+        return lidar_new, objs_scan, removed
 
     def cones (self):
         angle_step = 360 / self.n_cones
@@ -96,7 +103,7 @@ class power:
         return quadrants
 
     def get_angle_and_distance(self, cell):
-        ego_pos = self.ego[self._sampleindex]
+        ego_pos = self.ego[self._curr_sample_index]
         x = cell.x
         y = cell.y
         angle = math.degrees(math.atan2((y-ego_pos[1]),(x-ego_pos[0])))
@@ -136,7 +143,7 @@ class power:
             for cell,distance in cone_cells:
                 prob = self.calc_proba(power[cone],distance)
                 
-                risk = cell.total_risk[self._sampleindex]
+                risk = cell.total_risk[self._curr_sample_index]
                 total_cost+= (1-prob)*risk
         return total_cost
     def power_sum_constraint(self,power):

@@ -16,9 +16,8 @@ class object_filter:
     def sample_up(self):
         return self._sample
     
-    def update(self, sample, sample_index, lidar_points, lidar_count):
+    def update(self, sample, lidar_points, lidar_count):
         self._sample = sample
-        self._sample_index = sample_index
         self._lidar_new = lidar_points
         
         if self._sample != self.oud:

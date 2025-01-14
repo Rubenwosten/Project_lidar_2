@@ -18,6 +18,7 @@ from Dectetion import Detect
 from Power import power
 from Subsample import subsample
 from Object_filter import object_filter
+from Error import Error
 
 import warnings
 from shapely.errors import ShapelyDeprecationWarning
@@ -30,45 +31,42 @@ from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion import arcline_path_utils
 from nuscenes.map_expansion.bitmap import BitMap
 
-dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+#dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
-#dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
+dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
 map_name = 'boston-seaport'  #'singapore-onenorth'
 map_short = 'Boston'
+datafile_name = 'reinitialized_data.pkl'
 
 map_width = 2979.5
 map_height = 2118.1
 
 amount_cones = 8
 max_power = 64 # watt
-procent = 0.75
+procent = 0.5
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
-
+probability_threshold = 0.6 
 
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
-scene_id = 1
-RESOLUTION = 5 # meter
+scene_id = 4
+RESOLUTION = 0.5 # meter
 
 run_detect = True
 run_obj = True
 run_power = True
 
-plot_layers = True
+plot_layers = False
 plot_pointcloud = True
 show_pointcloud = False
 plot_occ_hist = True
 plot_occ = True
 plot_risk = True
 plot_intermediate_risk = True
-plot_power_profile = False
-n_cones = 8
-
-
-p_uniform = [8]*n_cones
+plot_power_profile = True
 
 
 def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
@@ -116,7 +114,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         os.makedirs(gif_folders[run], exist_ok=True)
 
         # Paths for data and specific plots
-        scene_data_paths.append(os.path.join(run_folder, "data"))
+        scene_data_paths.append(os.path.join(run_folder, datafile_name))
         layer_plot_paths.append(os.path.join(plots_folders[run], "layers.png"))
 
         # Subdirectories for specific plot types
@@ -142,8 +140,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         Visualise.plot_layers(maps[1].grid, layer_plot_paths[1])
 
     # Initialize risk calculation
-    powe1 = power(maps[0], amount_cones, max_power,procent, subsample(maps[0], amount_cones), object_filter(maps[0]), constant_power = True)
-    powe2 = power(maps[1], amount_cones, max_power,procent, subsample(maps[1], amount_cones), object_filter(maps[1]),  constant_power=False)
+    powe1 = power(maps[0], amount_cones, max_power,procent, subsample(maps[0], amount_cones, probability_threshold), object_filter(maps[0]), constant_power = True)
+    powe2 = power(maps[1], amount_cones, max_power,procent, subsample(maps[1], amount_cones, probability_threshold), object_filter(maps[1]),  constant_power=False)
 
     # Initialize components for risk calculation, object tracking, and detection
     risk = Risk(risk_weights)
@@ -156,32 +154,39 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if not i == 0:
             if run_obj:
                 print('Updating objects')
-                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud,object_list_new=objs_scan_const)
-                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample_oud, x=0, y=0, sample_index=sample_index_oud,object_list_new=objs_scan_var)
+                maps[0].grid.total_obj[i], maps[0].grid.total_obj_sev[i] = objs[0].update(sample=sample, x=0, y=0, sample_index=i ,object_list_new=objs_scan_const)
+                maps[1].grid.total_obj[i], maps[1].grid.total_obj_sev[i] = objs[1].update(sample=sample, x=0, y=0, sample_index=i ,object_list_new=objs_scan_var)
 
             # Update detection data if required
             if run_detect:
                 print('Updating detection')
-                decs[0].update(sample=sample_oud, sample_index=sample_index_oud, lidar_new=lidar_new_const)
-                decs[1].update(sample=sample_oud, sample_index=sample_index_oud, lidar_new=lidar_new_var)
+                decs[0].update(sample=sample, sample_index=i, lidar_new=lidar_new_const)
+                decs[1].update(sample=sample, sample_index=i, lidar_new=lidar_new_var)
+        
+        # calculate ETA weights
+        print('Calculating ETA weights')
+        maps[0].grid.update_ETA(rang=LIDAR_RANGE, ego=maps[0].ego_positions, i=i)
+        maps[1].grid.update_ETA(rang=LIDAR_RANGE, ego=maps[1].ego_positions, i=i)
 
         print('Normalising risks')
         risk.Normalise_and_calc_risks_new(maps, i)
-
+        
         if run_power:
             print('Updating power profile')
             # update the power profile for the next sample
-            lidar_new_const, objs_scan_const = powe1.update(sample=sample, sample_index=i, scene_id=scene_id)
-            lidar_new_var, objs_scan_var = powe2.update(sample=sample, sample_index=i, scene_id=scene_id)
-
-            sample_oud = sample
-            sample_index_oud = i
+            lidar_new_const, objs_scan_const, lidar_removed_cons = powe1.update(curr_sample=sample, curr_sample_index=i, scene_id=scene_id)
+            lidar_new_var, objs_scan_var, lidar_removed_var = powe2.update(curr_sample=sample, curr_sample_index=i, scene_id=scene_id)
+        
+        print('Calculating average variables')
+        maps[0].grid.update_avg_vars(ego=maps[0].ego_positions, i=i, weights=risk_weights)
+        maps[1].grid.update_avg_vars(ego=maps[1].ego_positions, i=i, weights=risk_weights)
+            
         # Save point cloud plots for each sample
         if plot_pointcloud:
-            Visualise.save_pointcloud_scatterplot(maps[0], decs[0].lidarpoint, i, pointclouds_folders[0], overlay=False)
-            Visualise.save_pointcloud_scatterplot(maps[0], decs[0].lidarpoint, i, pointclouds_overlay_folders[0], overlay=True)
-            Visualise.save_pointcloud_scatterplot(maps[1], decs[1].lidarpoint, i, pointclouds_folders[1], overlay=False)
-            Visualise.save_pointcloud_scatterplot(maps[1], decs[1].lidarpoint, i, pointclouds_overlay_folders[1], overlay=True)
+            Visualise.save_pointcloud_scatterplot(maps[0], lidar_new_const, i, pointclouds_folders[0], overlay=False)
+            Visualise.save_pointcloud_scatterplot(maps[0], lidar_new_const, i, pointclouds_overlay_folders[0], overlay=True)
+            Visualise.save_pointcloud_scatterplot(maps[1], lidar_new_var, i, pointclouds_folders[1], overlay=False)
+            Visualise.save_pointcloud_scatterplot(maps[1], lidar_new_var, i, pointclouds_overlay_folders[1], overlay=True)
 
         if plot_intermediate_risk:
             Visualise.plot_risks(maps[0].grid, i, risk_plots_folders[0])
@@ -196,6 +201,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
         print(f"sample {i} complete\n")
 
+    # DONT KNOW IF THIS NORMALISATION IS STILL NEEDED
     # Retrieve global maxima for visualization scaling
     maxs_cons = maps[0].get_global_max()
     maxs_var = maps[1].get_global_max()
@@ -204,8 +210,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
     print(f'maxs = {maxs} before norm')
     # Normalize risk data and calculate total risk
-    risk.normalise_and_calc_risks(maps[0], maxs)
-    risk.normalise_and_calc_risks(maps[1], maxs)
+    risk.normalise_and_calc_risks(maps)
 
     # Retrieve global maxima for visualization scaling
     maxs_cons = maps[0].get_global_max()
@@ -217,8 +222,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
     # Update map grid with risk and object metrics, and generate plots for each sample
     for i in range(len(maps[0].samples)):
-        maps[0].update(i=i, weights=risk_weights)  # Update grid with calculated weights
-        maps[1].update(i=i, weights=risk_weights)  # Update grid with calculated weights
 
         if plot_risk:
             Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
@@ -231,7 +234,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
         print('\n')
 
-
     # Save updated map grid with new risk values
     maps[0].save_grid(scene_data_paths[0])
     maps[1].save_grid(scene_data_paths[1])
@@ -239,9 +241,12 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     Visualise.plot_avg_risks(maps, comparison_folder)
     Visualise.plot_avg_occ(maps, comparison_folder)
     Visualise.plot_total_var(maps[0].grid.total_obj, maps[1].grid.total_obj, 'Total Objects', comparison_folder)
-    Visualise.plot_total_var(maps[0].grid.total_obj_sev, maps[1].grid.total_obj, 'Total Object severity', comparison_folder)
+    Visualise.plot_total_var(maps[0].grid.total_obj_sev, maps[1].grid.total_obj_sev, 'Total Object severity', comparison_folder)
     Visualise.plot_removed_pointcount(powe1.sub.verschil, powe2.sub.verschil, comparison_folder)
     Visualise.plot_avg_occ_histogram(maps, comparison_folder)
+
+    error = Error(maps)
+    error.save_results_to_file(os.path.join(comparison_folder, 'error_results.txt'))
 
     Visualise.create_gif_from_folder(power_profile_folder, os.path.join(power_profile_folder, 'power_profile.gif'))
     # Generate summary plots for the simulation
