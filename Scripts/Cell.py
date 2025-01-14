@@ -2,15 +2,15 @@
 
 class Cell:
 
-    priority_layers = ['ped_crossing', 'walkway', 'stop_line', 'lane', 'road_block', 'road_segment', 'drivable_area', 'carpark_area']
+    priority_layers = ['ped_crossing', 'walkway', 'stop_line', 'lane', 'road_segment', 'road_block', 'drivable_area', 'carpark_area']
     
     severity_scores = {
         'ped_crossing': 10,
         'walkway': 9,
         'stop_line': 8,
         'lane': 7,
-        'road_block': 6,
-        'road_segment': 5,
+        'road_segment': 6,
+        'road_block': 5,
         'drivable_area': 4,
         'carpark_area': 3
     }
