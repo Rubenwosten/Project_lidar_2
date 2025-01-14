@@ -42,6 +42,7 @@ class power:
         self.filt = filt
         self.constant_power = constant_power
         self.p_optis = []
+        self.t_cost = np.zeros(len(self.ego))
 
             
 
@@ -49,19 +50,21 @@ class power:
         
         self._curr_sample = curr_sample
         self._curr_sample_index = curr_sample_index
+
+        cells = self.map.grid.circle_of_interrest(self.max_range,self.ego[self._curr_sample_index])
+        cones = self.assign_cell_to_cone(cells)
+        total_risk = 0
+        total_risk_per_cone = np.zeros(self.n_cones)
+        for cone_id, cone_cells in cones.items():
+            for cell,distance in cone_cells:
+                risk_cell = cell.total_risk[self._curr_sample_index]
+
+                total_risk+=risk_cell
+                total_risk_per_cone[cone_id] +=risk_cell
         if self.constant_power == True:
             self.p_optimal = [self.power_procent*self.p_max]*self.n_cones
-        else:    
-            cells = self.map.grid.circle_of_interrest(self.max_range,self.ego[self._curr_sample_index])
-            cones = self.assign_cell_to_cone(cells)
-            total_risk = 0
-            total_risk_per_cone = np.zeros(self.n_cones)
-            for cone_id, cone_cells in cones.items():
-                for cell,distance in cone_cells:
-                    risk_cell = cell.total_risk[self._curr_sample_index]
-
-                    total_risk+=risk_cell
-                    total_risk_per_cone[cone_id] +=risk_cell
+            self.cost(self.p_optimal, cones)
+        else: 
             p = np.zeros(self.n_cones)
             p_intial = np.zeros(self.n_cones)
 
@@ -145,6 +148,7 @@ class power:
                 
                 risk = cell.total_risk[self._curr_sample_index]
                 total_cost+= (1-prob)*risk
+        self.t_cost[self._curr_sample_index] = total_cost
         return total_cost
     def power_sum_constraint(self,power):
         return np.sum(power*T/self.n_cones) - self.power_procent*self.p_max*T

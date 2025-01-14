@@ -73,6 +73,8 @@ class Object:
         self._sampleindex = sample_index
         total_sev = 0
         if self._sample != self.oud:
+            if sample_index == 1:
+                self.oud = self.map.samples[0]
             anns = object_list_new
             #print(anns)
             if prnt:
@@ -105,10 +107,10 @@ class Object:
              return len(anns), total_sev
 
     def voorspelling(self,objecttoken):
-        img = self.mtp_input_representation.make_input_representation(objecttoken,self._sample)
-        agent_state_vector = torch.Tensor([[self.helper.get_velocity_for_agent(objecttoken, self._sample),
-                                    self.helper.get_acceleration_for_agent(objecttoken, self._sample),
-                                    self.helper.get_heading_change_rate_for_agent(objecttoken, self._sample)]])
+        img = self.mtp_input_representation.make_input_representation(objecttoken,self.oud)
+        agent_state_vector = torch.Tensor([[self.helper.get_velocity_for_agent(objecttoken, self.oud),
+                                    self.helper.get_acceleration_for_agent(objecttoken, self.oud),
+                                    self.helper.get_heading_change_rate_for_agent(objecttoken, self.oud)]])
         image_tensor = torch.Tensor(img).permute(2, 0, 1).unsqueeze(0)
         voorspelling = self.mtp(image_tensor, agent_state_vector)
         return voorspelling
