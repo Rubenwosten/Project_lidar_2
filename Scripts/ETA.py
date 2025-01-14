@@ -28,9 +28,9 @@ class ETA:
                             d = np.sqrt(d)
                             eta = d*v
                             risk_eta = 0.0667*eta**3-0.3*eta**2+0.0333*eta+1
-                        cell.detect_risk[self.sampleindex] = cell.detect_risk[self.sampleindex]*risk_eta
-                        cell.track_risk[self.sampleindex] = cell.track_risk[self.sampleindex]*risk_eta
-                        cell.static_risk[self.sampleindex] = cell.static_risk[self.sampleindex]*risk_eta
+                        cell.detect_risk[self.sampleindex] *= risk_eta
+                        cell.track_risk[self.sampleindex] *= risk_eta
+                        cell.static_risk[self.sampleindex] *= risk_eta
                         
 
             

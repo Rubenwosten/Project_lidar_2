@@ -348,8 +348,8 @@ class Visualise:
             plt.imshow(color_matrix, origin='lower', extent=[0, grid.width, 0, grid.length])
 
         plt.scatter(
-            [point[0] for point in pointcloud],  # X-coordinates
-            [point[1] for point in pointcloud],  # Y-coordinates
+            [((point[0]-x_min)/grid.res) for point in pointcloud],  # X-coordinates
+            [((point[1]-y_min)/grid.res) for point in pointcloud],  # Y-coordinates
             c='black', s=1, marker='.'  # Black points, small size, dot marker
         )
 
@@ -393,7 +393,6 @@ class Visualise:
     def show_lidar_pointcloud_2d(pointcloud, i):
 
         fig, ax = plt.subplots(figsize=(10, 10))
-
         # Extract X, Y, Z coordinates from the point cloud
         x_coords = [point[0] for point in pointcloud]
         y_coords = [point[1] for point in pointcloud]
