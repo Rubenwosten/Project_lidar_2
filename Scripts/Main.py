@@ -172,7 +172,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         maps[1].grid.update_ETA(rang=LIDAR_RANGE, ego=maps[1].ego_positions, i=i)
 
         print('Normalising risks')
-        risk.Normalise_and_calc_risks_new(maps, i)
+        risk.Normalise_and_calc_risks(maps, i)
         
         if run_power:
             print('Updating power profile')
@@ -205,34 +205,11 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if plot_power_profile:
             Visualise.plot_power_profile(powe1.p_optimal, powe2.p_optimal, i, power_profile_folder)
 
-        if i == 10: 
-            break
         print(f"sample {i} complete\n")
 
-    # DONT KNOW IF THIS NORMALISATION IS STILL NEEDED
-    # Retrieve global maxima for visualization scaling
-    maxs_cons = maps[0].get_global_max()
-    maxs_var = maps[1].get_global_max()
-
-    # Calculate the biggest maxima across both simulations
-    maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
-    maxs = [value if value > 0 else 1 for value in maxs]
-    print(f'maxs = {maxs} before norm')
-    # Normalize risk data and calculate total risk
-    risk.normalise_and_calc_risks(maps)
-
-    # Retrieve global maxima for visualization scaling
-    maxs_cons = maps[0].get_global_max()
-    maxs_var = maps[1].get_global_max()
-
-    # Calculate the biggest maxima across both simulations
-    maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
-    maxs = [value if value > 0 else 1 for value in maxs]
-    print(f'maxs = {maxs} after norm')
-
+    maxs = (1.0, 1.0, 1.0, 1.0)
     # Update map grid with risk and object metrics, and generate plots for each sample
     for i in range(len(maps[0].samples)):
-
 
         if plot_risk:
             Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
@@ -243,8 +220,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.plot_occ_histogram(maps[0], i, occ_hist_folders[0])
             Visualise.plot_occ_histogram(maps[1], i, occ_hist_folders[1])
 
-        if i == 10: 
-            break
         print('\n')
 
     # Save updated map grid with new risk values

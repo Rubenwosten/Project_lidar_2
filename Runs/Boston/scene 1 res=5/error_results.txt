@@ -1,0 +1,8 @@
+Found objects difference: 0.7249999999999996
+Object severity difference: 0.49196095115200045
+Total average Occupancy Uncertainty difference: -0.012939468677174057
+Average Occupancy Uncertainty difference 0-20m: 0.0
+Average Occupancy Uncertainty difference 20-40m: 0.0
+Average Occupancy Uncertainty difference 40-60m: 0.0
+Average Occupancy Uncertainty difference 60-80m: 0.0
+Average Occupancy Uncertainty difference 80-100m: 0.0

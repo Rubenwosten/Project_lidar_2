@@ -83,28 +83,6 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # assigns layers for both simulation, the map var that calls it does not matter
     Map.assign_layers(scene_data_paths, maps, prnt=False)
 
-    # DONT KNOW IF THIS NORMALISATION IS STILL NEEDED
-    # Retrieve global maxima for visualization scaling
-    maxs_cons = maps[0].get_global_max()
-    maxs_var = maps[1].get_global_max()
-    maxs_cons = ([value if value > 0 else 1 for value in maxs_cons])
-    maxs_var = ([value if value > 0 else 1 for value in maxs_var])
-    print(f'maxs_cons = {maxs_cons}')
-    print(f'maxs_var = {maxs_var}')
-
-    # Calculate the biggest maxima across both simulations
-    maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
-    print(f'maxs = {maxs} before norm')
-    # Normalize risk data and calculate total risk
-    risk.normalise_and_calc_risks(maps)
-
-    # Retrieve global maxima for visualization scaling
-    maxs_cons = maps[0].get_global_max()
-    maxs_var = maps[1].get_global_max()
-
-    # Calculate the biggest maxima across both simulations
-    maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
-    print(f'maxs = {maxs} after norm')
 
 
 

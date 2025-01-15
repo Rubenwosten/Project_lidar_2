@@ -116,7 +116,7 @@ class Utility:
         maps[1].grid.update_ETA(rang=LIDAR_RANGE, ego=maps[1].ego_positions, i=0)
 
         print('Normalising risks')
-        risk.Normalise_and_calc_risks_new(maps, i=0)
+        risk.Normalise_and_calc_risks(maps, i=0)
 
         unchanged_risk_matrix = maps[0].grid.get_unchanged_static_risk_matrix()
         ETA_matrix = maps[0].grid.get_eta_weight_matrix()
