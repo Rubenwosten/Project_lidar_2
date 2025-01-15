@@ -8,7 +8,7 @@ class Risk:
         self.weights = weights
         
 
-    def Normalise_and_calc_risks_new(self, maps, i):
+    def Normalise_and_calc_risks(self, maps, i):
         """
         Calculate the total risk as a weighted sum of static_risk, detect_risk, and track_risk.
 
@@ -23,7 +23,6 @@ class Risk:
         # Calculate the biggest maxima across both simulations
         maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
         max_total, max_static, max_detect, max_track = [value if value > 0 else 1 for value in maxs]
-        print(f'maxs before norm = {(max_total, max_static, max_detect, max_track)}')
         w_s, w_d, w_t = self.weights
 
         for map in maps:
@@ -37,13 +36,13 @@ class Risk:
         max_total_cons = np.max(np.array(maps[0].grid.get_total_risk_matrix(i)))
         max_total_var = np.max(np.array(maps[1].grid.get_total_risk_matrix(i)))
         max_total = max(max_total_cons, max_total_var)
-        for map in maps:
+        for j, map in enumerate(maps):
             for cells in map.grid.grid:
                 for cell in cells:
                     cell.total_risk[i] /= max_total
 
 
-    def normalise_and_calc_risks(self, maps):
+    def normalise_and_calc_risks_old(self, maps):
         """
         Normalizes risks and calculates total risk per cell using given weights.
         """

@@ -31,20 +31,20 @@ from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion import arcline_path_utils
 from nuscenes.map_expansion.bitmap import BitMap
 
-dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+#dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
-#dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
+dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
 map_name = 'boston-seaport'  #'singapore-onenorth'
 map_short = 'Boston'
-datafile_name = 'reinitialized_data.pkl'
+datafile_name = 'data'
 
 map_width = 2979.5
 map_height = 2118.1
 
 amount_cones = 8
 max_power = 64 # watt
-procent = 0.75
+procent = 0.5
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
@@ -52,8 +52,8 @@ probability_threshold = 0.6
 
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
-scene_id = 4
-RESOLUTION = 0.5 # meter
+scene_id = 1
+RESOLUTION = 5 # meter
 
 run_detect = True
 run_obj = True
@@ -98,6 +98,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     layer_plot_paths = []
     pointclouds_folders = []
     pointclouds_overlay_folders = []
+    pointclouds_overlay_removed_folders = []
 
     risk_plots_folders = []
     occ_folders = []
@@ -121,6 +122,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         risk_plots_folders.append(os.path.join(plots_folders[run], "risks"))
         pointclouds_folders.append(os.path.join(plots_folders[run], "pointclouds"))
         pointclouds_overlay_folders.append(os.path.join(plots_folders[run], "pointclouds overlay"))
+        pointclouds_overlay_removed_folders.append(os.path.join(plots_folders[run], "removed points overlay"))
         occ_folders.append(os.path.join(plots_folders[run], "occurrence"))
         occ_hist_folders.append(os.path.join(plots_folders[run], "occurrence histograms"))
 
@@ -128,6 +130,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         os.makedirs(risk_plots_folders[run], exist_ok=True)
         os.makedirs(pointclouds_folders[run], exist_ok=True)
         os.makedirs(pointclouds_overlay_folders[run], exist_ok=True)
+        os.makedirs(pointclouds_overlay_removed_folders[run], exist_ok=True)
         os.makedirs(occ_folders[run], exist_ok=True)
         os.makedirs(occ_hist_folders[run], exist_ok=True)
 
@@ -169,7 +172,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         maps[1].grid.update_ETA(rang=LIDAR_RANGE, ego=maps[1].ego_positions, i=i)
 
         print('Normalising risks')
-        risk.Normalise_and_calc_risks_new(maps, i)
+        risk.Normalise_and_calc_risks(maps, i)
         
         if run_power:
             print('Updating power profile')
@@ -185,8 +188,11 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if plot_pointcloud:
             Visualise.save_pointcloud_scatterplot(maps[0], lidar_new_const, i, pointclouds_folders[0], overlay=False)
             Visualise.save_pointcloud_scatterplot(maps[0], lidar_new_const, i, pointclouds_overlay_folders[0], overlay=True)
+            Visualise.save_pointcloud_scatterplot(maps[0], lidar_removed_cons, i, pointclouds_overlay_removed_folders[0], overlay=True, title='Removed pointcloud')
             Visualise.save_pointcloud_scatterplot(maps[1], lidar_new_var, i, pointclouds_folders[1], overlay=False)
             Visualise.save_pointcloud_scatterplot(maps[1], lidar_new_var, i, pointclouds_overlay_folders[1], overlay=True)
+            Visualise.save_pointcloud_scatterplot(maps[1], lidar_removed_var, i, pointclouds_overlay_removed_folders[1], overlay=True, title='Removed pointcloud')
+
 
         if plot_intermediate_risk:
             Visualise.plot_risks(maps[0].grid, i, risk_plots_folders[0])
@@ -201,28 +207,9 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
         print(f"sample {i} complete\n")
 
-    # DONT KNOW IF THIS NORMALISATION IS STILL NEEDED
-    # Retrieve global maxima for visualization scaling
-    maxs_cons = maps[0].get_global_max()
-    maxs_var = maps[1].get_global_max()
-
-    # Calculate the biggest maxima across both simulations
-    maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
-    print(f'maxs = {maxs} before norm')
-    # Normalize risk data and calculate total risk
-    risk.normalise_and_calc_risks(maps)
-
-    # Retrieve global maxima for visualization scaling
-    maxs_cons = maps[0].get_global_max()
-    maxs_var = maps[1].get_global_max()
-
-    # Calculate the biggest maxima across both simulations
-    maxs = tuple(max(cons, var) for cons, var in zip(maxs_cons, maxs_var))
-    print(f'maxs = {maxs} after norm')
-
+    maxs = (1.0, 1.0, 1.0, 1.0)
     # Update map grid with risk and object metrics, and generate plots for each sample
     for i in range(len(maps[0].samples)):
-
 
         if plot_risk:
             Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
