@@ -82,7 +82,7 @@ class power:
 
         power_opti = self.p_optimal
 
-        self.sub.update(curr_sample, curr_sample_index + 1, scene_id, power_opti)
+        self.sub.update(curr_sample, curr_sample_index, scene_id, power_opti)
 
 
         lidar_new = self.sub.subsamp

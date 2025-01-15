@@ -73,9 +73,10 @@ class Map:
             info = self.nusc.get('sample', sample)
             sample = info['next']
             lidar_sample = np.append(lidar_sample, info['data']['LIDAR_TOP'])
-        samples = np.append(samples, last)
-        info_last= self.nusc.get('sample', last)
-        lidar_sample = np.append(lidar_sample, info_last['data']['LIDAR_TOP'])
+        if len(samples) <40:
+            samples = np.append(samples, last)
+            info_last= self.nusc.get('sample', last)
+            lidar_sample = np.append(lidar_sample, info_last['data']['LIDAR_TOP'])
         return samples,lidar_sample
 
 

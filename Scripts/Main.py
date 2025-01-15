@@ -44,7 +44,7 @@ map_height = 2118.1
 
 amount_cones = 8
 max_power = 64 # watt
-procent = 0.5
+procent = 0.75
 LIDAR_RANGE = 100 # 100 meter
 OCC_ACCUM = 1 / 8 # full accumulation in 8 samples = 4 sec 
 LIDAR_DECAY = 1 # amount of occurrence that goes down per lidar point
@@ -52,7 +52,7 @@ probability_threshold = 0.6
 
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
-scene_id = 1
+scene_id = 4
 RESOLUTION = 0.5 # meter
 
 run_detect = True
@@ -222,6 +222,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
     # Update map grid with risk and object metrics, and generate plots for each sample
     for i in range(len(maps[0].samples)):
+
 
         if plot_risk:
             Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
