@@ -328,7 +328,7 @@ class Visualise:
         print('Grid visualization complete.')
 
     @staticmethod
-    def save_pointcloud_scatterplot(map, pointcloud, iteration, output_folder,overlay=True, total_size=8, dpi=100):
+    def save_pointcloud_scatterplot(map, pointcloud, iteration, output_folder,overlay=True, title='Point Cloud', total_size=8, dpi=100):
         """
         Creates and saves a scatter plot of the given point cloud.
 
@@ -404,7 +404,7 @@ class Visualise:
 
         # Configure plot aesthetics
         plt.gca().set_aspect('equal', adjustable='box')  # Ensure aspect ratio matches the map
-        plt.title(f"Point Cloud Sample {iteration}")
+        plt.title(title + f" Sample {iteration}")
         plt.xlabel("X (Map Coordinates)")
         plt.ylabel("Y (Map Coordinates)")
 
