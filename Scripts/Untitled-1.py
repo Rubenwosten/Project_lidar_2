@@ -7,8 +7,8 @@ erx = 0.9 # receiver optics effeciency
 etx = 0.9 # emmitter optics effeciency
 n = 0.1 #target reflectivity
 D = 25*pow(10,-3) #diameter lens 25 mm
-Aovx = 1/np.pi #1 graden in radialen
-Aovy = 1/np.pi #1 graden in radialen
+Aovx = np.pi/180 #1 graden in radialen
+Aovy = np.pi/180 #1 graden in radialen
 phi_amb = 37.72 #W/m^2 gekozen via tabel want test wast delta labda = 50 nm
 Nshots = 1
 Ro = 0.9 #We kiezen een ADP lidar met een golflengte van 903 nm
@@ -35,7 +35,7 @@ def calc_proba(power,r):
     Prob = 0.5*math.erfc(np.sqrt(-math.log(P_false))-np.sqrt(SNR+0.5))
     return Prob
 
-pro = calc_proba(32,50)
+pro = calc_proba(2,30)
 print(pro)
 e = 1080*2.997*10**8*6.626*10**-34/(900*10**-9)
 print(e)
@@ -70,3 +70,6 @@ print(e)
                 print(f'amount of objects within the sample = {len(anns)}')
             else:
 '''
+
+amp_area = np.pi*(D/2)**2
+print (amp_area)
