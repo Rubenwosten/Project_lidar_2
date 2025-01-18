@@ -41,8 +41,8 @@ probability_threshold = 0.6
 
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
-scene_id = 1
-RESOLUTION = 5 # meter
+scene_id = 4
+RESOLUTION = 0.5 # meter
 
 run_detect = True
 run_obj = True
@@ -81,7 +81,11 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     risk = Risk(risk_weights)
 
     # assigns layers for both simulation, the map var that calls it does not matter
-    Map.assign_layers(scene_data_paths, maps, prnt=False)
+    #Map.assign_layers(scene_data_paths, maps, prnt=False)
+    maps[0].load_grid(scene_data_paths[0])
+
+    Visualise.show_layers(maps[0].grid)
+    #Visualise.show_risk(maps[0].grid.get_unchanged_static_risk_matrix(), 'Static Risk Map', 'Static Risk')
 
 
 

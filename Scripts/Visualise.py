@@ -58,12 +58,13 @@ class Visualise:
         ])
 
         ax.imshow(color_matrix, origin='lower')
-        ax.set_title("Layer Grid")
-        ax.legend(handles=legend_handles, loc='upper right')
-
-        plt.title('Layer plot')
+        ax.set_title("Layer Map", fontsize=20)
+        ax.tick_params(axis='both', which='major', labelsize=14)
+        ax.legend(handles=legend_handles, loc='upper right', fontsize=10)
+        ax.grid(False)
+        
         plt.tight_layout()
-        #plt.show()
+        plt.show()
 
         print('Layer grid visualization complete.')
 
@@ -159,7 +160,8 @@ class Visualise:
 
         for i, (title, matrix) in enumerate(risk_matrices.items()):
             ax = axes[i]
-            im = ax.imshow(matrix, origin='lower', cmap='viridis', norm=Normalize(vmin=np.min(matrix), vmax=np.max(matrix)))
+            norm = Normalize(vmin=0, vmax=1)
+            im = ax.imshow(matrix, origin='lower', cmap='viridis', norm=norm)
             ax.set_title(title, fontsize=12)
 
             # Disable gridlines for each subplot
@@ -185,7 +187,7 @@ class Visualise:
         print(f"Risk plot for sample {index} saved as '{risk_plot_filename}'.")
     
     @staticmethod
-    def show_risk(risk_matrix, title):
+    def show_risk(risk_matrix, title, bar_title):
         # Define the figure
         risk_matrix = np.transpose(risk_matrix)
         fig, ax = plt.subplots(figsize=(12, 10))  # Create a figure and axis
@@ -199,14 +201,18 @@ class Visualise:
         )
 
         # Set title
-        ax.set_title(title, fontsize=12)
+        ax.set_title(title, fontsize=20)
+
+        # Customize tick label font sizes
+        ax.tick_params(axis='both', which='major', labelsize=14)
 
         # Disable gridlines
         ax.grid(False)
 
         # Add colorbar
-        cbar = fig.colorbar(ScalarMappable(norm=im.norm, cmap=im.cmap), ax=ax, shrink=0.8)
-        cbar.set_label(title)
+        cbar = fig.colorbar(ScalarMappable(norm=im.norm, cmap=im.cmap), ax=ax)
+        cbar.set_label(bar_title, fontsize=16)  # Increase color bar label font size
+        cbar.ax.tick_params(labelsize=14)  # Increase font size of color bar ticks
 
         # Show the plot
         plt.show()

@@ -37,7 +37,7 @@ dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 
 map_name = 'boston-seaport'  #'singapore-onenorth'
 map_short = 'Boston'
-datafile_name = 'data'
+datafile_name = 'reinitialized_data.pkl'
 
 map_width = 2979.5
 map_height = 2118.1
@@ -52,7 +52,11 @@ probability_threshold = 0.975
 
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
+<<<<<<< HEAD
 scene_id = 4
+=======
+scene_id = 1
+>>>>>>> 4f2efef335c222b296d74c69eaf6a3c88c8a02aa
 RESOLUTION = 0.5 # meter
 
 run_detect = True
@@ -65,7 +69,6 @@ show_pointcloud = False
 plot_occ_hist = True
 plot_occ = True
 plot_risk = True
-plot_intermediate_risk = True
 plot_power_profile = True
 
 
@@ -194,7 +197,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
             Visualise.save_pointcloud_scatterplot(maps[1], lidar_removed_var, i, pointclouds_overlay_removed_folders[1], overlay=True, title='Removed pointcloud')
 
 
-        if plot_intermediate_risk:
+        if plot_risk:
             Visualise.plot_risks(maps[0].grid, i, risk_plots_folders[0])
             Visualise.plot_risks(maps[1].grid, i, risk_plots_folders[1])
 
@@ -205,22 +208,11 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if plot_power_profile:
             Visualise.plot_power_profile(powe1.p_optimal, powe2.p_optimal, i, power_profile_folder)
 
-        print(f"sample {i} complete\n")
-
-    maxs = (1.0, 1.0, 1.0, 1.0)
-    # Update map grid with risk and object metrics, and generate plots for each sample
-    for i in range(len(maps[0].samples)):
-
-        if plot_risk:
-            Visualise.plot_risks_maximised(maps[0].grid, i, maxs, risk_plots_folders[0])
-            Visualise.plot_risks_maximised(maps[1].grid, i, maxs, risk_plots_folders[1])
-
-        # plot occurrence range histograms
         if plot_occ_hist:
             Visualise.plot_occ_histogram(maps[0], i, occ_hist_folders[0])
             Visualise.plot_occ_histogram(maps[1], i, occ_hist_folders[1])
 
-        print('\n')
+        print(f"sample {i} complete\n")
 
     # Save updated map grid with new risk values
     maps[0].save_grid(scene_data_paths[0])
