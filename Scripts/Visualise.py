@@ -584,8 +584,9 @@ class Visualise:
         plt.plot(var_var, label="Variable Power", color="red", linestyle='--', linewidth=2)
         
         # Add title and labels
-        plt.title(title)
-        plt.xlabel("Index")
+        plt.title(title, fontsize = 20)
+        plt.xlabel("Sample", fontsize=16)
+        plt.ylim(bottom=0)
         
         # Add legend to distinguish between the two lines
         plt.legend(loc='upper right')

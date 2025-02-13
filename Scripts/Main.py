@@ -52,11 +52,7 @@ probability_threshold = 0.975
 
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
-<<<<<<< HEAD
-scene_id = 4
-=======
 scene_id = 1
->>>>>>> 4f2efef335c222b296d74c69eaf6a3c88c8a02aa
 RESOLUTION = 0.5 # meter
 
 run_detect = True
