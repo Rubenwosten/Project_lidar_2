@@ -120,5 +120,5 @@ dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 
 nusc = NuScenes(version='v1.0-mini', dataroot=dataroot, verbose=False)
 nusc.list_scenes()
-scene = nusc.scene[0]
+scene = nusc.scene[6]
 print(scene)

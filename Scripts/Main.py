@@ -35,8 +35,8 @@ dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
 #dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
-map_name = 'boston-seaport'  #'singapore-onenorth'
-map_short = 'Boston'
+map_name = ['singapore-onenorth','boston-seaport','boston-seaport','boston-seaport','boston-seaport', 'singapore-queenstown','singapore-queenstown','singapore-hollandvillage','singapore-hollandvillage','singapore-hollandvillage'] #'singapore-onenorth'
+map_short = ['singapore','Boston','Boston','Boston','Boston','singapore','singapore','singapore','singapore','singapore']
 datafile_name = 'reinitialized_data.pkl'
 
 map_width = 2979.5
@@ -68,7 +68,7 @@ plot_risk = True
 plot_power_profile = True
 
 
-def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
+def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # Entry point for the main simulation function
     print("Starting main function...")
 
@@ -264,8 +264,9 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 if __name__ == '__main__':
     print("Running as main module...")  # Debugging line
     start_time = time.time()
-    main(map_short=map_short, 
-        id=scene_id, 
+    for i in range(10):
+        main(mapname=map_name[i],map_short=map_short[i], 
+        id=i, 
         LIDAR_RANGE=LIDAR_RANGE, 
         RESOLUTION=RESOLUTION, 
         OCC_ACCUM=OCC_ACCUM, 

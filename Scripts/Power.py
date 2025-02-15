@@ -73,7 +73,7 @@ class power:
                 #print(f'total_risk_per_cone = {total_risk_per_cone[cone]}')
                 p_intial[cone] = total_risk_per_cone[cone]*self.p_max/total_risk
                 
-            power_bound = [(2,self.p_max)]*self.n_cones
+            power_bound = [(0,self.p_max)]*self.n_cones
             constraints = {"type": "eq", "fun": self.power_sum_constraint}
             result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
             self.p_optimal = result.x
