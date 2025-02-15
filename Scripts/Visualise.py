@@ -133,6 +133,120 @@ class Visualise:
         print(f"Occurrence plot for iteration {i} saved as '{occ_plot_filename}'.")
 
     @staticmethod
+    def show_prob(grid, i):
+        """
+        Visualizes the grid's probability matrix.
+
+        Displays the grid's occurrence data, plotting cells with the 'empty' layer as white 
+        and others based on their occurrence value.
+        """
+        # Get the occurrence matrix for the given iteration
+        prob_matrix = np.transpose(grid.get_prob_matrix(i))
+        layer_matrix = np.transpose(grid.get_layer_matrix())
+
+        # Create a mask for 'empty' cells
+        mask = (layer_matrix == 'empty')
+
+        # Prepare a colormap for occurrence values (excluding 'empty' cells)
+        cmap = plt.cm.viridis
+        norm = Normalize(vmin=0, vmax=1)  # Normalize occurrence values between 0 and 1
+
+        # Create the plot
+        plt.figure(figsize=(10, 8))
+
+        # Plot the occurrence matrix, masking 'empty' cells
+        im = plt.imshow(
+            np.ma.masked_where(mask, prob_matrix), 
+            origin='lower', 
+            cmap=cmap, 
+            norm=norm
+        )
+
+        # Overlay 'empty' cells as white
+        plt.imshow(
+            np.where(mask, 1, np.nan),  # Masked cells get 1, others are NaN
+            origin='lower', 
+            cmap=ListedColormap(['white']), 
+            interpolation='none'
+        )
+
+        # Add colorbar for the occurrence values
+        cbar = plt.colorbar(im)
+        cbar.set_label('Probability')
+
+        # Add title and adjust layout
+        plt.title(f"Probability of succcesful scan at sample {i}")
+        plt.tight_layout()
+        # plt.show()
+
+        # print('Occurrence visualization complete.')
+    
+    @staticmethod
+    def plot_prob(grid, i, output_folder):
+        prob_plot_filename = os.path.join(output_folder, f"prob_plot_iter_{i}.png")
+        Visualise.show_prob(grid, i)
+        plt.savefig(prob_plot_filename)
+        plt.close() 
+        print(f"Probability plot for iteration {i} saved as '{prob_plot_filename}'.")
+
+    @staticmethod
+    def show_expected_risk(grid, i):
+        """
+        Visualizes the grid's expected risk matrix.
+
+        Displays the grid's occurrence data, plotting cells with the 'empty' layer as white 
+        and others based on their occurrence value.
+        """
+        # Get the occurrence matrix for the given iteration
+        expected_risk_matrix = np.transpose(grid.get_expected_risk_matrix(i))
+        layer_matrix = np.transpose(grid.get_layer_matrix())
+
+        # Create a mask for 'empty' cells
+        mask = (layer_matrix == 'empty')
+
+        # Prepare a colormap for occurrence values (excluding 'empty' cells)
+        cmap = plt.cm.viridis
+        norm = Normalize(vmin=0, vmax=1)  # Normalize occurrence values between 0 and 1
+
+        # Create the plot
+        plt.figure(figsize=(10, 8))
+
+        # Plot the occurrence matrix, masking 'empty' cells
+        im = plt.imshow(
+            np.ma.masked_where(mask, expected_risk_matrix), 
+            origin='lower', 
+            cmap=cmap, 
+            norm=norm
+        )
+
+        # Overlay 'empty' cells as white
+        plt.imshow(
+            np.where(mask, 1, np.nan),  # Masked cells get 1, others are NaN
+            origin='lower', 
+            cmap=ListedColormap(['white']), 
+            interpolation='none'
+        )
+
+        # Add colorbar for the occurrence values
+        cbar = plt.colorbar(im)
+        cbar.set_label('Expected risk Value')
+
+        # Add title and adjust layout
+        plt.title(f"Expected risk at sample {i}")
+        plt.tight_layout()
+        # plt.show()
+
+        # print('Occurrence visualization complete.')
+    
+    @staticmethod
+    def plot_expected_risk(grid, i, output_folder):
+        expected_risk_plot_filename = os.path.join(output_folder, f"expected_risk_plot_iter_{i}.png")
+        Visualise.show_prob(grid, i)
+        plt.savefig(expected_risk_plot_filename)
+        plt.close() 
+        print(f"Expected risk plot for iteration {i} saved as '{expected_risk_plot_filename}'.")
+        
+    @staticmethod
     def show_risks(grid, index):
         """
         Displays a 2x2 subplot grid for risk matrices: Total Risk, Static Risk, Detect Risk, and Track Risk.
@@ -855,7 +969,7 @@ class Visualise:
 
         # Overlay 'empty' cells as white
         plt.imshow(
-            np.where(mask, 1, np.nan),  # Masked cells get 1, others are NaN
+            np.where(mask, 0, np.nan),  # Masked cells get 1, others are NaN
             origin='lower', 
             cmap=ListedColormap(['white']), 
             interpolation='none'
@@ -866,7 +980,10 @@ class Visualise:
         cbar.set_label('ETA Weight')
 
         # Add title and adjust layout
-        plt.title(f"ETA Weights at Sample {i}")
+        plt.title(f"ETA Weights", fontsize=14)
+        plt.grid(False)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
         plt.tight_layout()
         plt.show()
 

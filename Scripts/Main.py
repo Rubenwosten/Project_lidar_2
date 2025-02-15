@@ -100,6 +100,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     pointclouds_overlay_removed_folders = []
 
     risk_plots_folders = []
+    expected_risk_plots_folders = []
     occ_folders = []
     occ_hist_folders = []
 
@@ -119,6 +120,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
         # Subdirectories for specific plot types
         risk_plots_folders.append(os.path.join(plots_folders[run], "risks"))
+        expected_risk_plots_folders.append(os.path.join(plots_folders[run], "expected risks"))
         pointclouds_folders.append(os.path.join(plots_folders[run], "pointclouds"))
         pointclouds_overlay_folders.append(os.path.join(plots_folders[run], "pointclouds overlay"))
         pointclouds_overlay_removed_folders.append(os.path.join(plots_folders[run], "removed points overlay"))
@@ -127,6 +129,7 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 
         # Ensure subdirectories exist
         os.makedirs(risk_plots_folders[run], exist_ok=True)
+        os.makedirs(expected_risk_plots_folders[run], exist_ok=True)
         os.makedirs(pointclouds_folders[run], exist_ok=True)
         os.makedirs(pointclouds_overlay_folders[run], exist_ok=True)
         os.makedirs(pointclouds_overlay_removed_folders[run], exist_ok=True)
@@ -196,6 +199,8 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         if plot_risk:
             Visualise.plot_risks(maps[0].grid, i, risk_plots_folders[0])
             Visualise.plot_risks(maps[1].grid, i, risk_plots_folders[1])
+            Visualise.plot_expected_risk(maps[0].grid, i, expected_risk_plots_folders[0])
+            Visualise.plot_expected_risk(maps[1].grid, i, expected_risk_plots_folders[1])
 
         if plot_occ:
             Visualise.plot_occ(maps[0].grid, i, occ_folders[0])
