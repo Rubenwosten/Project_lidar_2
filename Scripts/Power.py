@@ -142,13 +142,14 @@ class power:
 
     def cost(self, power,cones):
         total_cost = 0
+        i = self._curr_sample_index
         for cone, cone_cells in cones.items():
             for cell,distance in cone_cells:
-                prob = self.calc_proba(power[cone],distance)
-                
-                risk = cell.total_risk[self._curr_sample_index]
-                total_cost+= (1-prob)*risk
-        self.t_cost[self._curr_sample_index] = total_cost
+                cell.probability[i] = self.calc_proba(power[cone],distance)
+                cell.expected_risk[i] = (1-cell.probability[i])*cell.total_risk[i]
+                total_cost+= cell.expected_risk[i]
+        self.t_cost[i] = total_cost
+        self.map.grid.total_expected_risk[i] = total_cost
         return total_cost
     
     def power_sum_constraint(self,power):

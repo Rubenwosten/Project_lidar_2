@@ -28,6 +28,8 @@ class Cell:
         self.static_risk = 0
         self.detect_risk = [0] * scene_length
         self.track_risk = [0] * scene_length
+        self.expected_risk = [0] * scene_length
+        self.probability = [0] * scene_length
         self.isscanned = False
         self.ofinterest = 0
         self.lidar_aantal = [0] * scene_length
@@ -95,6 +97,8 @@ class Cell:
             'static risk': self.static_risk,
             'detect risk': self.detect_risk,
             'track risk': self.track_risk,
+            'expected risk': self.expected_risk,
+            'probability': self.probability,
             'layers': self.layers,
             'layer': self.layer,
             'isscanned': self.isscanned,
@@ -125,6 +129,8 @@ class Cell:
         cell.static_risk = cell_dict['static risk']
         cell.detect_risk = cell_dict['detect risk']
         cell.track_risk = cell_dict['track risk']
+        # cell.expected_risk = cell_dict['expected risk']
+        # cell.probability = cell_dict['probability']
         cell.layer = cell_dict['layer']
         cell.isscanned = cell_dict['isscanned']
         cell.ofinterest = cell_dict['ofinterest']

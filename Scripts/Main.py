@@ -31,9 +31,9 @@ from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion import arcline_path_utils
 from nuscenes.map_expansion.bitmap import BitMap
 
-dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+#dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
-#dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
+dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
 map_name = ['singapore-onenorth','boston-seaport','boston-seaport','boston-seaport','boston-seaport', 'singapore-queenstown','singapore-queenstown','singapore-hollandvillage','singapore-hollandvillage','singapore-hollandvillage'] #'singapore-onenorth'
 map_short = ['singapore','Boston','Boston','Boston','Boston','singapore','singapore','singapore','singapore','singapore']
@@ -100,6 +100,8 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
     pointclouds_overlay_removed_folders = []
 
     risk_plots_folders = []
+    expected_risk_plots_folders = []
+    prob_plots_folders = []
     occ_folders = []
     occ_hist_folders = []
 
@@ -119,6 +121,8 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
 
         # Subdirectories for specific plot types
         risk_plots_folders.append(os.path.join(plots_folders[run], "risks"))
+        expected_risk_plots_folders.append(os.path.join(plots_folders[run], "expected risks"))
+        prob_plots_folders.append(os.path.join(plots_folders[run], "probability"))
         pointclouds_folders.append(os.path.join(plots_folders[run], "pointclouds"))
         pointclouds_overlay_folders.append(os.path.join(plots_folders[run], "pointclouds overlay"))
         pointclouds_overlay_removed_folders.append(os.path.join(plots_folders[run], "removed points overlay"))
@@ -127,6 +131,7 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
 
         # Ensure subdirectories exist
         os.makedirs(risk_plots_folders[run], exist_ok=True)
+        os.makedirs(expected_risk_plots_folders[run], exist_ok=True)
         os.makedirs(pointclouds_folders[run], exist_ok=True)
         os.makedirs(pointclouds_overlay_folders[run], exist_ok=True)
         os.makedirs(pointclouds_overlay_removed_folders[run], exist_ok=True)
@@ -196,6 +201,10 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
         if plot_risk:
             Visualise.plot_risks(maps[0].grid, i, risk_plots_folders[0])
             Visualise.plot_risks(maps[1].grid, i, risk_plots_folders[1])
+            Visualise.plot_prob(maps[0].grid, i, prob_plots_folders[0])
+            Visualise.plot_prob(maps[1].grid, i, prob_plots_folders[1])
+            Visualise.plot_expected_risk(maps[0].grid, i, expected_risk_plots_folders[0])
+            Visualise.plot_expected_risk(maps[1].grid, i, expected_risk_plots_folders[1])
 
         if plot_occ:
             Visualise.plot_occ(maps[0].grid, i, occ_folders[0])
@@ -231,6 +240,7 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
         # Create GIFs for visualizing results
         gif_folder = gif_folders[run]
         Visualise.create_gif_from_folder(risk_plots_folders[run], os.path.join(gif_folder, 'risks.gif'))
+        Visualise.create_gif_from_folder(expected_risk_plots_folders[run], os.path.join(gif_folder, 'expected_risks.gif'))
         Visualise.create_gif_from_folder(pointclouds_folders[run], os.path.join(gif_folder, 'pointcloud.gif'))
         Visualise.create_gif_from_folder(pointclouds_overlay_folders[run], os.path.join(gif_folder, 'pointcloud_layers.gif'))
         Visualise.create_gif_from_folder(occ_folders[run], os.path.join(gif_folder, 'occurrence.gif'))

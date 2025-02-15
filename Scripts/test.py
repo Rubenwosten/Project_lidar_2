@@ -83,8 +83,11 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # assigns layers for both simulation, the map var that calls it does not matter
     #Map.assign_layers(scene_data_paths, maps, prnt=False)
     maps[0].load_grid(scene_data_paths[0])
+    maps[0].grid.create_non_empty_grid()
+    maps[0].grid.update_ETA(rang=LIDAR_RANGE, ego=maps[0].ego_positions, i=0)
 
-    Visualise.show_layers(maps[0].grid)
+    Visualise.show_eta_weights(maps[0].grid, i=0)
+    #Visualise.show_layers(maps[0].grid)
     #Visualise.show_risk(maps[0].grid.get_unchanged_static_risk_matrix(), 'Static Risk Map', 'Static Risk')
 
 

@@ -23,6 +23,7 @@ class Grid:
         self.avg_static_risk = [0] * scene_length
         self.avg_detection_risk = [0] * scene_length
         self.avg_tracking_risk = [0] * scene_length
+        self.total_expected_risk = [0] * scene_length
         self.avg_occ = [0] * scene_length
         self.total_obj = [0] * scene_length
         self.total_obj_sev = [0] * scene_length
@@ -198,6 +199,12 @@ class Grid:
     def get_track_risk_matrix(self, i):
         return [[cell.track_risk[i] for cell in row] for row in self.grid]
     
+    def get_expected_risk_matrix(self, i):
+        return [[cell.expected_risk[i] for cell in row] for row in self.grid]
+    
+    def get_prob_matrix(self, i):
+        return [[cell.probability[i] for cell in row] for row in self.grid]
+    
     def get_occ_matrix(self, i):
         return [[cell.occ[i] for cell in row] for row in self.grid]
 
@@ -219,6 +226,7 @@ class Grid:
             'total static risk': self.avg_static_risk,
             'total detection risk': self.avg_detection_risk,
             'total tracking risk': self.avg_tracking_risk,
+            'total expected risk': self.total_expected_risk,
             'total occ': self.avg_occ,
             'total obj': self.total_obj,
             'total obj sev': self.total_obj_sev
@@ -250,6 +258,7 @@ class Grid:
         grid.avg_static_risk = grid_dict['total static risk']
         grid.avg_detection_risk = grid_dict['total detection risk']
         grid.avg_tracking_risk = grid_dict['total tracking risk']
+        # grid.total_expected_risk = grid_dict['total expected risk']
         grid.avg_occ = grid_dict['total occ']
         grid.total_obj = grid_dict['total obj']
         grid.total_obj_sev = grid_dict['total obj sev']
