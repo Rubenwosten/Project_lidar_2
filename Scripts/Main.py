@@ -35,8 +35,8 @@ from nuscenes.map_expansion.bitmap import BitMap
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
 dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
-map_name = 'boston-seaport'  #'singapore-onenorth'
-map_short = 'Boston'
+map_name = ['singapore-onenorth','boston-seaport','boston-seaport','boston-seaport','boston-seaport', 'singapore-queenstown','singapore-queenstown','singapore-hollandvillage','singapore-hollandvillage','singapore-hollandvillage'] #'singapore-onenorth'
+map_short = ['singapore','Boston','Boston','Boston','Boston','singapore','singapore','singapore','singapore','singapore']
 datafile_name = 'reinitialized_data.pkl'
 
 map_width = 2979.5
@@ -68,7 +68,7 @@ plot_risk = True
 plot_power_profile = True
 
 
-def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
+def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     # Entry point for the main simulation function
     print("Starting main function...")
 
@@ -78,15 +78,16 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     maps = [map_const, map_var]
 
     # Create a folder structure to save the run results and plots
-    run_folder_cons = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Constant Power')
-    run_folder_var = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Variable Power')
+    scene_name = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION} Power = {100*procent}%")
+    run_folder_cons = os.path.join(scene_name,'Constant Power')
+    run_folder_var = os.path.join(scene_name, 'Variable Power')
     run_folders = [run_folder_cons, run_folder_var]
 
     # create a folder where all the comparison plots are made
-    comparison_folder = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}")
+    comparison_folder = os.path.join(scene_name)
     os.makedirs(comparison_folder, exist_ok=True)
 
-    power_profile_folder = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Power Profiles')
+    power_profile_folder = os.path.join(scene_name, 'Power Profiles')
     os.makedirs(power_profile_folder, exist_ok=True)
 
     plots_folders = []
@@ -274,8 +275,9 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
 if __name__ == '__main__':
     print("Running as main module...")  # Debugging line
     start_time = time.time()
-    main(map_short=map_short, 
-        id=scene_id, 
+    for i in range(10):
+        main(mapname=map_name[i],map_short=map_short[i], 
+        id=i, 
         LIDAR_RANGE=LIDAR_RANGE, 
         RESOLUTION=RESOLUTION, 
         OCC_ACCUM=OCC_ACCUM, 
