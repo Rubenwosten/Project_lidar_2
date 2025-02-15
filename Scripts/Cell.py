@@ -5,14 +5,14 @@ class Cell:
     priority_layers = ['ped_crossing', 'walkway', 'stop_line', 'lane', 'road_segment', 'road_block', 'drivable_area', 'carpark_area']
     
     severity_scores = {
-        'ped_crossing': 10,
-        'walkway': 9,
-        'stop_line': 8,
-        'lane': 7,
-        'road_segment': 6,
-        'road_block': 5,
-        'drivable_area': 4,
-        'carpark_area': 3
+        'ped_crossing': 1,
+        'walkway': 1,
+        'stop_line': (37248.62/67511.90),
+        'lane': (37248.62/67511.90),
+        'road_segment': (37248.62/67511.90),
+        'road_block': (37248.62/67511.90),
+        'drivable_area': (37248.62/67511.90),
+        'carpark_area': (37248.62/67511.90)
     }
 
     def __init__(self, x, y, scene_length,layers = None):

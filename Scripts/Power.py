@@ -7,8 +7,8 @@ erx = 0.9 # receiver optics effeciency
 etx = 0.9 # emmitter optics effeciency
 n = 0.1 #target reflectivity
 D = 25*pow(10,-3) #diameter lens 25 mm
-Aovx = 1/np.pi #1 graden in radialen
-Aovy = 1/np.pi #1 graden in radialen
+Aovx = np.pi/180 #1 graden in radialen
+Aovy = np.pi/180 #1 graden in radialen
 phi_amb = 37.72 #W/m^2 gekozen via tabel want test wast delta labda = 50 nm
 Nshots = 1
 Ro = 0.9 #We kiezen een ADP lidar met een golflengte van 903 nm
@@ -73,7 +73,7 @@ class power:
                 #print(f'total_risk_per_cone = {total_risk_per_cone[cone]}')
                 p_intial[cone] = total_risk_per_cone[cone]*self.p_max/total_risk
                 
-            power_bound = [(16,self.p_max)]*self.n_cones
+            power_bound = [(2,self.p_max)]*self.n_cones
             constraints = {"type": "eq", "fun": self.power_sum_constraint}
             result = minimize(lambda power: self.cost(power, cones), p_intial, bounds=power_bound, constraints=constraints)
             self.p_optimal = result.x

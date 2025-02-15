@@ -1,14 +1,16 @@
 
 import numpy as np
 import math
+import matplotlib.pyplot as plt
+
 from scipy.optimize import minimize
 #lidar_parameters:
 erx = 0.9 # receiver optics effeciency
 etx = 0.9 # emmitter optics effeciency
 n = 0.1 #target reflectivity
 D = 25*pow(10,-3) #diameter lens 25 mm
-Aovx = 1/np.pi #1 graden in radialen
-Aovy = 1/np.pi #1 graden in radialen
+Aovx = np.pi/180 #1 graden in radialen
+Aovy = np.pi/180 #1 graden in radialen
 phi_amb = 37.72 #W/m^2 gekozen via tabel want test wast delta labda = 50 nm
 Nshots = 1
 Ro = 0.9 #We kiezen een ADP lidar met een golflengte van 903 nm
@@ -24,21 +26,56 @@ e = 1.602*10**-19 # elementaire lading
 P_false = 10**-4 # false trigger mochten klein zetten
 freq = 16.6667
 T =1/freq
-
+'''
 def calc_proba(power,r):
-    
-    amp_area = np.pi*(D/2)**2
-    P_s = (1/(2*np.pi*r**2))*power*erx*etx*n*amp_area
-    Aov = 4*r**2*np.tan(Aovx/2)*np.tan(Aovy/2)
-    P_b = (1/(2*np.pi*r**2))*phi_amb*amp_area*Aov*erx*n
-    SNR = np.sqrt(Nshots*Ro**2*P_s**2)/np.sqrt(2*e*Bn*F*(Ro*(P_s+P_b)+Id)+(Bn/M**2)*(4*Kb*T/Rf + (vamp/Rf)**2))
-    Prob = 0.5*math.erfc(np.sqrt(-math.log(P_false))-np.sqrt(SNR+0.5))
-    return Prob
+    prob_list = np.empty(500)
+    for i in range(500):
+        amp_area = np.pi*(D/2)**2
+        P_s = (1/(2*np.pi*(r[i])**2))*power*erx*etx*n*amp_area
+        Aov = 4*r[i]**2*np.tan(Aovx/2)*np.tan(Aovy/2)
+        P_b = (1/(2*np.pi*(r[i])**2))*phi_amb*amp_area*Aov*erx*n
+        SNR = np.sqrt(Nshots*Ro**2*P_s**2)/np.sqrt(2*e*Bn*F*(Ro*(P_s+P_b)+Id)+(Bn/M**2)*(4*Kb*T/Rf + (vamp/Rf)**2))
+        Prob = 0.5*math.erfc(np.sqrt(-math.log(P_false))-np.sqrt(SNR+0.5))
+        prob_list[i] = 1-Prob
+    return prob_list
 
-pro = calc_proba(32,50)
+# Example function for calculating the probability of missing
+# You can adjust this function to your actual model
+
+
+# Define distance range
+distances = np.linspace(0, 100, 500)
+
+# Define different power values
+power_values = [2, 7, 12]
+
+# Create the plot
+plt.figure(figsize=(8, 6))
+
+# Plot lines for different power values
+for power in power_values:
+    probabilities = calc_proba(power, distances)
+    plt.plot(distances, probabilities, label=f'Power = {power} W')
+
+# Add labels and title
+plt.xlabel('Distance (m)')
+plt.ylabel('Probability of Missing')
+plt.title('Probability of Missing vs Distance')
+
+# Add legend
+plt.legend()
+
+# Display the plot
+plt.grid(True)
+plt.show()
+
+
+
+pro = calc_proba(2,25)
 print(pro)
 e = 1080*2.997*10**8*6.626*10**-34/(900*10**-9)
 print(e)
+'''
 #dec lines.
 '''            if self.constant_power==True:
                 self.file_get()
@@ -70,3 +107,18 @@ print(e)
                 print(f'amount of objects within the sample = {len(anns)}')
             else:
 '''
+'''
+amp_area = np.pi*(D/2)**2
+print (amp_area)
+'''
+from nuscenes.nuscenes import NuScenes
+from nuscenes.map_expansion.map_api import NuScenesMap
+from nuscenes.map_expansion import arcline_path_utils
+from nuscenes.map_expansion.bitmap import BitMap
+
+dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+
+nusc = NuScenes(version='v1.0-mini', dataroot=dataroot, verbose=False)
+nusc.list_scenes()
+scene = nusc.scene[0]
+print(scene)

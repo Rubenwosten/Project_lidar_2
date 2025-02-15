@@ -81,19 +81,19 @@ class severity:
             "orientation": 1
         },
         "vehicle.bus.bendy": {
-            "score": 1.0,
+            "score": (37248.62/67511.90),
             "orientation": 1
         },
         "vehicle.bus.rigid": {
-            "score": 1.0,
+            "score": (37248.62/67511.90),
             "orientation": 1
         },
         "vehicle.car": {
-            "score": 0.908919531,
+            "score": (37248.62/67511.90),
             "orientation": 1
         },
         "vehicle.construction": {
-            "score": 1.0,
+            "score": (37248.62/67511.90),
             "orientation": 1
         },
         "vehicle.emergency.ambluance": {
@@ -109,11 +109,11 @@ class severity:
             "orientation": 1
         },
         "vehicle.trailer": {
-            "score": 1.0,
+            "score": (37248.62/67511.90),
             "orientation": 1
         },
         "vehicle.truck": {
-            "score": 1.0,
+            "score": (37248.62/67511.90),
             "orientation": 1
         }
         }
