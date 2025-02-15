@@ -64,7 +64,9 @@ class Visualise:
         ax.grid(False)
         
         plt.tight_layout()
-        plt.show()
+        plt.xlabel("X (Map Coordinates)")
+        plt.ylabel("Y (Map Coordinates)")
+        #plt.show()
 
         print('Layer grid visualization complete.')
 
@@ -119,7 +121,10 @@ class Visualise:
 
         # Add title and adjust layout
         plt.title(f"Occurrence at sample {i}")
+        plt.xlabel("X (Map Coordinates)")
+        plt.ylabel("Y (Map Coordinates)")
         plt.tight_layout()
+        plt.grid(False)
         # plt.show()
 
         # print('Occurrence visualization complete.')
@@ -176,7 +181,10 @@ class Visualise:
 
         # Add title and adjust layout
         plt.title(f"Probability of succcesful scan at sample {i}")
+        plt.xlabel("X (Map Coordinates)")
+        plt.ylabel("Y (Map Coordinates)")
         plt.tight_layout()
+        plt.grid(False)
         # plt.show()
 
         # print('Occurrence visualization complete.')
@@ -233,7 +241,10 @@ class Visualise:
 
         # Add title and adjust layout
         plt.title(f"Expected risk at sample {i}")
+        plt.xlabel("X (Map Coordinates)")
+        plt.ylabel("Y (Map Coordinates)")
         plt.tight_layout()
+        plt.grid(False)
         # plt.show()
 
         # print('Occurrence visualization complete.')
@@ -241,7 +252,7 @@ class Visualise:
     @staticmethod
     def plot_expected_risk(grid, i, output_folder):
         expected_risk_plot_filename = os.path.join(output_folder, f"expected_risk_plot_iter_{i}.png")
-        Visualise.show_prob(grid, i)
+        Visualise.show_expected_risk(grid, i)
         plt.savefig(expected_risk_plot_filename)
         plt.close() 
         print(f"Expected risk plot for iteration {i} saved as '{expected_risk_plot_filename}'.")
