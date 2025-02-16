@@ -78,15 +78,16 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
     maps = [map_const, map_var]
 
     # Create a folder structure to save the run results and plots
-    run_folder_cons = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Constant Power')
-    run_folder_var = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Variable Power')
+    scene_name = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION} Power = {100*procent}%")
+    run_folder_cons = os.path.join(scene_name,'Constant Power')
+    run_folder_var = os.path.join(scene_name, 'Variable Power')
     run_folders = [run_folder_cons, run_folder_var]
 
     # create a folder where all the comparison plots are made
-    comparison_folder = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}")
+    comparison_folder = os.path.join(scene_name)
     os.makedirs(comparison_folder, exist_ok=True)
 
-    power_profile_folder = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Power Profiles')
+    power_profile_folder = os.path.join(scene_name, 'Power Profiles')
     os.makedirs(power_profile_folder, exist_ok=True)
 
     plots_folders = []
@@ -132,6 +133,7 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
         # Ensure subdirectories exist
         os.makedirs(risk_plots_folders[run], exist_ok=True)
         os.makedirs(expected_risk_plots_folders[run], exist_ok=True)
+        os.makedirs(prob_plots_folders[run], exist_ok=True)
         os.makedirs(pointclouds_folders[run], exist_ok=True)
         os.makedirs(pointclouds_overlay_folders[run], exist_ok=True)
         os.makedirs(pointclouds_overlay_removed_folders[run], exist_ok=True)
