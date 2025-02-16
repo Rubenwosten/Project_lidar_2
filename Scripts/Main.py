@@ -31,9 +31,9 @@ from nuscenes.map_expansion.map_api import NuScenesMap
 from nuscenes.map_expansion import arcline_path_utils
 from nuscenes.map_expansion.bitmap import BitMap
 
-#dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
-dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
+#dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
 map_name = ['singapore-onenorth','boston-seaport','boston-seaport','boston-seaport','boston-seaport', 'singapore-queenstown','singapore-queenstown','singapore-hollandvillage','singapore-hollandvillage','singapore-hollandvillage'] #'singapore-onenorth'
 map_short = ['singapore','Boston','Boston','Boston','Boston','singapore','singapore','singapore','singapore','singapore']
@@ -156,7 +156,7 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
     risk = Risk(risk_weights)
     objs = [Object(maps[0], constant_power=True), Object(maps[1], constant_power=False)]
     decs = [Detect(maps[0], constant_power=True), Detect(maps[1], constant_power=False)]
-
+    
     # Process each sample in the map
     for i, sample in enumerate(maps[0].samples):
         # Update object data if required
@@ -269,6 +269,7 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
                 print(f'Error handling .gitignore file: {e}')
 
 
+
     print('Done')  # End of the main function
 
 
@@ -276,13 +277,12 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
 if __name__ == '__main__':
     print("Running as main module...")  # Debugging line
     start_time = time.time()
-    for i in range(10):
-        main(mapname=map_name[i],map_short=map_short[i], 
-        id=i, 
-        LIDAR_RANGE=LIDAR_RANGE, 
-        RESOLUTION=RESOLUTION, 
-        OCC_ACCUM=OCC_ACCUM, 
-        LIDAR_DECAY=LIDAR_DECAY)
+    main(map_name=map_name[0],map_short=map_short[0], 
+    id=0, 
+    LIDAR_RANGE=LIDAR_RANGE, 
+    RESOLUTION=RESOLUTION, 
+    OCC_ACCUM=OCC_ACCUM, 
+    LIDAR_DECAY=LIDAR_DECAY)
 
     run_time = time.time() - start_time
     print(f'\nRunning took {timedelta(seconds=run_time)}')
