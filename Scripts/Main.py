@@ -133,6 +133,7 @@ def main(map_name, map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECA
         # Ensure subdirectories exist
         os.makedirs(risk_plots_folders[run], exist_ok=True)
         os.makedirs(expected_risk_plots_folders[run], exist_ok=True)
+        os.makedirs(prob_plots_folders[run], exist_ok=True)
         os.makedirs(pointclouds_folders[run], exist_ok=True)
         os.makedirs(pointclouds_overlay_folders[run], exist_ok=True)
         os.makedirs(pointclouds_overlay_removed_folders[run], exist_ok=True)
