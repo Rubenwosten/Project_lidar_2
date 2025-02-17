@@ -20,13 +20,13 @@ from Subsample import subsample
 from Object_filter import object_filter
 from Error import Error
 
-#dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
+dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
-dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
+#dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
-map_name = 'boston-seaport'  #'singapore-onenorth'
-map_short = 'Boston'
-datafile_name = 'data'
+map_name = 'singapore-queenstown'  #'singapore-onenorth'
+map_short = 'singapore'
+datafile_name = 'reinitialized_data.pkl'
 
 map_width = 2979.5
 map_height = 2118.1
@@ -41,8 +41,8 @@ probability_threshold = 0.6
 
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
-scene_id = 4
-RESOLUTION = 0.5 # meter
+scene_id = 5
+RESOLUTION = 5 # meter
 
 run_detect = True
 run_obj = True
