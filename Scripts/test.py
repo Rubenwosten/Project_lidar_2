@@ -24,9 +24,15 @@ dataroot = r"C:/Users/Ruben/OneDrive/Bureaublad/data/sets/nuscenes"
 #dataroot = r"C:/Users/marni/OneDrive/Documents/BEP 2024/data/sets/nuscenes"
 #dataroot = r'C:/Users/Chris/Python scripts/BEP VALDERS/data/sets/nuscenes'
 
+<<<<<<< HEAD
 map_name = 'singapore-queenstown'  #'singapore-onenorth'
 map_short = 'singapore'
 datafile_name = 'reinitialized_data.pkl'
+=======
+map_name = 'boston-seaport'  #'singapore-onenorth'
+map_short =  'singapore' #'Boston'
+datafile_name = 'data'
+>>>>>>> a69f297b494365c3fca7713b012cd7d4a5cc43f5
 
 map_width = 2979.5
 map_height = 2118.1
@@ -41,8 +47,13 @@ probability_threshold = 0.6
 
 risk_weights = (1, 4, 2) # (0.5, 2, 10) # static, detection, tracking
 
+<<<<<<< HEAD
 scene_id = 5
 RESOLUTION = 5 # meter
+=======
+scene_id = 6
+RESOLUTION = 0.5 # meter
+>>>>>>> a69f297b494365c3fca7713b012cd7d4a5cc43f5
 
 run_detect = True
 run_obj = True
@@ -68,8 +79,9 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
     maps = [map_const, map_var]
 
     # Create a folder structure to save the run results and plots
-    run_folder_cons = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Constant Power')
-    run_folder_var = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}", 'Variable Power')
+    scene_name = os.path.join("Runs", map_short, f"scene {id} res={RESOLUTION}")
+    run_folder_cons = os.path.join(scene_name, 'Constant Power')
+    run_folder_var = os.path.join(scene_name, 'Variable Power')
     run_folders = [run_folder_cons, run_folder_var]
 
     scene_data_paths = []
@@ -78,17 +90,12 @@ def main(map_short, id, LIDAR_RANGE, RESOLUTION, OCC_ACCUM, LIDAR_DECAY):
         os.makedirs(run_folder, exist_ok=True)  # Ensure the directory exists
         # Paths for data and specific plots
         scene_data_paths.append(os.path.join(run_folder, datafile_name))
+        os.makedirs(scene_data_paths[run])
     risk = Risk(risk_weights)
 
     # assigns layers for both simulation, the map var that calls it does not matter
-    #Map.assign_layers(scene_data_paths, maps, prnt=False)
-    maps[0].load_grid(scene_data_paths[0])
-    maps[0].grid.create_non_empty_grid()
-    maps[0].grid.update_ETA(rang=LIDAR_RANGE, ego=maps[0].ego_positions, i=0)
-
-    Visualise.show_eta_weights(maps[0].grid, i=0)
-    #Visualise.show_layers(maps[0].grid)
-    #Visualise.show_risk(maps[0].grid.get_unchanged_static_risk_matrix(), 'Static Risk Map', 'Static Risk')
+    Map.assign_layers(scene_data_paths, maps, prnt=False)
+    Visualise.plot_layers(maps[0].grid, run_folder_cons)
 
 
 
